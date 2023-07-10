@@ -22,13 +22,13 @@ The frontend provides a user interface for uploading a PDF file, extracting its 
 
 To run the app locally, follow these steps:
 
-1. Install the required dependencies by running `npm install` in both the root directory and the `client` directory.
+1. Install the required dependencies by running `npm install` in both the root directory and the `backend` directory.
 
 2. Replace `'YOU_OPENAPI_KEY'` in the backend code with your actual OpenAI API key.
 
-3. Start the backend server by running `npm start` in the root directory.
+3. Start the backend server by running `node server.js` in the root directory.
 
-4. Start the frontend development server by running `npm start` in the `client` directory.
+4. Start the frontend development server by running `npm run dev` in the `root` directory.
 
 5. Access the app in your browser at `http://localhost:3000`.
 
