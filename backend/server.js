@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 
 async function sendToOpenAI(textData) {
   const configuration = new Configuration({
-    apiKey: 'YOU_OPENAPI_KEY',
+    apiKey: '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',
   });
   const openai = new OpenAIApi(configuration);
 
@@ -27,13 +27,12 @@ async function sendToOpenAI(textData) {
       messages: [
         {
           role: 'user',
-          content: 'summarize in 10 words !!no longer: ' + textData,
+          content: 'summary: ' + textData,
         },
       ],
-      max_tokens: 2048,
+      max_tokens: 420,
       temperature: 0.5,
       n: 1,
-      stop: '\n',
     });
 
     return response.data.choices[0].message.content;
@@ -80,5 +79,5 @@ app.post('/summary', async (req, res) => {
 });
 
 app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+  console.log('🤖 api listening on port 3000');
 });
