@@ -16,6 +16,7 @@ const Login = () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       //save user to localstotage
+      signIn();
       localStorage.setItem("user", JSON.stringify(auth.currentUser));
       toast.success("Signed in with Google successfully", {
         position: toast.POSITION.TOP_RIGHT,
