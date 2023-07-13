@@ -16,7 +16,7 @@ const Login = () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       //save user to localstotage
-
+      localStorage.setItem("user", JSON.stringify(auth.currentUser));
       toast.success("Signed in with Google successfully", {
         position: toast.POSITION.TOP_RIGHT,
       });
@@ -29,7 +29,7 @@ const Login = () => {
       });
     }
   };
-  localStorage.setItem("user", JSON.stringify(auth.currentUser));
+  
 
   return (
     <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
