@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 
 async function sendToOpenAI(textData) {
   const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: 'OPEN_API_KEY',
   });
   const openai = new OpenAIApi(configuration);
 
