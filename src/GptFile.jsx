@@ -1,12 +1,11 @@
+import "./flairs.css";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { motion, AnimatePresence } from "framer-motion";
-import { auth } from "./Firebase/Firebase";
+import { collection, doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { getFirestore, collection, doc, setDoc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
-
-import "./flairs.css";
 import { TypeAnimation } from "react-type-animation";
+import { auth } from "./Firebase/Firebase";
 
 const GptFile = () => {
   const [file, setFile] = useState(null);
@@ -143,7 +142,7 @@ const GptFile = () => {
       .then(function () {
         // Logout successful. You can perform any additional tasks or redirection here.
         console.log("User logged out");
-        navigation.navigate("/"); // Navigate to the root route
+        navigate("/"); // Navigate to the root route
       })
       .catch(function (error) {
         // An error occurred while logging out.
@@ -325,20 +324,20 @@ const GptFile = () => {
           )}
         </AnimatePresence>
       </div>
-      <footer style={{ marginTop: "2rem", width: '100%', textAlign:'center'}}>
-          <p style={{ textAlign: "center" }}>
-            Made with{" "}
-            <span role="img" aria-label="heart">
-              ❤️
-            </span>{" "}
-            by{" "}
-            <a href="#" target="_blank" rel="noopener noreferrer">
-              Team 1
-            </a>
-          </p>
-          <p>This site is using OpenAI's API for text summaraziation your data will be sent to their data. By using this site you agree to <a href="adw">Terms and Conditions</a> <br/> If you reside in EU or any other affiliated domicile please read <a>GDPR EU Policy</a></p>
-          <p style={{opacity:0}}> DEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVE</p>
-        </footer>
+      <footer style={{ marginTop: "2rem", width: '100%', textAlign: 'center' }}>
+        <p style={{ textAlign: "center" }}>
+          Made with{" "}
+          <span role="img" aria-label="heart">
+            ❤️
+          </span>{" "}
+          by{" "}
+          <a href="#" target="_blank" rel="noopener noreferrer">
+            Team 1
+          </a>
+        </p>
+        <p>This site is using OpenAI's API for text summaraziation your data will be sent to their data. By using this site you agree to <a href="adw">Terms and Conditions</a> <br /> If you reside in EU or any other affiliated domicile please read <a>GDPR EU Policy</a></p>
+        <p style={{ opacity: 0 }}> DEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVEDEVLOPMENT TAG DO NOT REMOVE</p>
+      </footer>
     </div>
   );
 };
