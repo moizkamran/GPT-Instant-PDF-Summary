@@ -15,11 +15,12 @@ app.use((req, res, next) => {
   next();
 });
 
-async function sendToOpenAI(textData) {
+async function sendToOpenAI(textData, vibe) {
   const configuration = new Configuration({
     apiKey: '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',
   });
   const openai = new OpenAIApi(configuration);
+  console.log('Sending to OpenAI:', vibe);
 
   try {
     const response = await openai.createChatCompletion({
@@ -27,14 +28,42 @@ async function sendToOpenAI(textData) {
       messages: [
         {
           role: 'user',
-          content: 'summary: ' + textData,
+          content: 'summarize the text in the style of:' + vibe + 'heres the text:' + textData,
         },
       ],
       max_tokens: 420,
       temperature: 0.5,
       n: 1,
     });
+    // console.log('OpenAI API Response:', response.messages[0].content);
+    return response.data.choices[0].message.content;
+  } catch (error) {
+    console.error('OpenAI API Error:', error.response.data);
+    throw error;
+  }
+}
 
+async function improveSummary(summary, improvement) {
+  const configuration = new Configuration({
+    apiKey: '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',
+  });
+  const openai = new OpenAIApi(configuration);
+  console.log('Sending to OpenAI:', improvement);
+
+  try {
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'user',
+          content: '!JUST OUTPUT THE TEXT! Improve the following summary in the style of: ' + improvement + '----- heres the summary: ' + summary,
+        },
+      ],
+      max_tokens: 420,
+      temperature: 0.5,
+      n: 1,
+    });
+    // console.log('OpenAI API Response:', response.messages[0].content);
     return response.data.choices[0].message.content;
   } catch (error) {
     console.error('OpenAI API Error:', error.response.data);
@@ -67,14 +96,26 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
 });
 
 app.post('/summary', async (req, res) => {
-  const { text } = req.body;
+  const { text, vibe } = req.body;
 
   try {
-    const summary = await sendToOpenAI(text);
+    const summary = await sendToOpenAI(text, vibe);
     res.json({ summary: summary });
   } catch (error) {
     console.error('Error sending data to OpenAI:', error);
     res.status(500).json({ error: 'Error sending data to OpenAI' });
+  }
+});
+
+app.post('/improve', async (req, res) => {
+  const { summary, improvement } = req.body;
+
+  try {
+    const improvedSummary = await improveSummary(summary, improvement);
+    res.json({ summary: improvedSummary });
+  } catch (error) {
+    console.error('Error improving summary with OpenAI:', error);
+    res.status(500).json({ error: 'Error improving summary with OpenAI' });
   }
 });
 

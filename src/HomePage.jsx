@@ -100,7 +100,7 @@ const HomePage = () => {
 
   const summarizeText = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/summary", { text });
+      const response = await axios.post("http://localhost:3000/summary", { text, vibe });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
@@ -164,6 +164,38 @@ const HomePage = () => {
 
       // Continue with other logic if necessary
       // ...
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const improveText = async () => {
+    try {
+      const response = await axios.post("http://localhost:3000/improve", { summary: summary, improvement: improvePrompt });
+      setSummary(response.data.summary);
+      console.log(response.data.summary);
+    } catch (error) {
+      console.log("Error improve the text:", error);
+      setSummary("Failed to improve the text");
+    }
+  };
+
+  const handleImprovement = async (event) => {
+    event.preventDefault();
+
+    setIsLoading(true);
+
+    try {
+      // Check word count history before summarizing
+      const shouldProceed = await checkWordCountHistory();
+
+      if (shouldProceed) {
+        await improveText();
+      } else {
+        setIsLoading(false);
+        return;
+      }
     } finally {
       setIsLoading(false);
     }
@@ -350,12 +382,21 @@ const HomePage = () => {
                     value={improvePrompt}
                     onChange={(event) => setImprovePrompt(event.currentTarget.value)}
                     placeholder="Enter in words or phrases to improve the summary"
-                    w={"100%"}
+                    w={"80%"}
                     style={{
                       border: "none !important",
                       borderRadius: "10px",
                     }}
                   />
+                  <div style={{flex: 1}}></div>
+                     { improvePrompt ? ( <Button
+                onClick={handleImprovement}
+                loading={isLoading}
+                disabled={isLoading}
+                color="dark"
+              >
+                Improve
+              </Button>) :''}
               </Flex>
             </Flex>): ''}
             
@@ -380,7 +421,7 @@ const HomePage = () => {
                       width: "600px",
                       height: "400px",
                       padding: "10px 20px 10px 20px",
-                      overflow: "scroll",
+                      overflow: "hidden",
                     }}>
                 
 
@@ -390,7 +431,7 @@ const HomePage = () => {
                     w={"100%"}
                     h={"100%"}
                     autosize
-                    minRows={2}
+                    maxRows={17}
                   />
 
                 </Flex>
