@@ -315,8 +315,12 @@ export default function CustomHeader() {
             <Button onClick={handleLogout} color="red" variant="gradient">
               Logout
             </Button>
-            <Text>{user.displayName}</Text>
             <Avatar size="md" src={user.photoURL} />
+            <Flex gap={0} direction={'column'}>
+            <Text>{user.displayName}</Text>
+            <Text c="dimmed">Basic Plan</Text>
+            </Flex>
+           
             </Flex>
             ):''}
           </Group>

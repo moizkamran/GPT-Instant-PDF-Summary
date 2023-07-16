@@ -1,5 +1,5 @@
 import CustomHeader from "./CustomHeader";
-import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, Select, Text, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
+import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, LoadingOverlay, Select, Text, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -27,6 +27,7 @@ const HomePage = () => {
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [vibe, setVibe] = useState(null); // ['formal', 'informal', 'casual
+  console.log(vibe);
   const [isUploaded, setIsUploaded] = useState(false);
   const [improvePrompt, setImprovePrompt] = useState("");
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
@@ -36,7 +37,7 @@ const HomePage = () => {
   const summaryLimit = 100;
   const wordLimit = 1500;
 
-  const viveStyles = [
+  const vibeStyles = [
     { label: "Formal", value: "formal" },
     { label: "Informal", value: "informal" },
     { label: "Casual", value: "casual" },
@@ -47,7 +48,7 @@ const HomePage = () => {
     { label: "Legal", value: "legal"},
     { label: "Scientific", value: "scientific"},
     { label: "Literary", value: "literary"},
-    { label: "Poetic", value: "poetic"},
+    { label: "Poetic", value: "of mahmood darwish"},
   ];
 
   const userJson = localStorage.getItem("user");
@@ -454,8 +455,8 @@ const HomePage = () => {
                           '&[data-hovered]': {},
                         },
                       }}
-                      data={viveStyles}
-                      placeholder="Select your vive"
+                      data={vibeStyles}
+                      placeholder="Select your vibe"
                     /> <div style={{flex: 1}}></div>
                      { vibe ? ( <Button
                 onClick={handleSummarize}
@@ -526,12 +527,13 @@ const HomePage = () => {
                       borderRadius: "10px",
                       width: "600px",
                       minHeight: "400px",
+                      position: "relative",
                       maxHeight: "400px",
                       padding: "10px 20px 10px 20px",
-                      overflowY: "scroll",
+                      overflowY: isLoading ? "hidden" : "scroll",
                     }}>
                 
-                
+                <LoadingOverlay visible={isLoading} overlayBlur={6} transitionDuration={200}/>
                 <TypographyStylesProvider>
                     <div id="summary" dangerouslySetInnerHTML={{ __html: `${summary}` }} />
                 </TypographyStylesProvider>
