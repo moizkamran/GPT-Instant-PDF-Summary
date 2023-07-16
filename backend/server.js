@@ -28,11 +28,14 @@ async function sendToOpenAI(textData, vibe) {
       messages: [
         {
           role: 'user',
-          content: '!!IMPORTANT: Output the summary in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else MAXIMUM 400 words REMOVE any conetnt which would not be relavent in a summary. Summarize the text in the style of:' + vibe + 'heres the text:' + textData,
+          content: '!!IMPORTANT: Summarize the text in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else MAXIMUM 400 words REMOVE any content which would not be relavent in a summary. DO NOT JUST OUTPUT THE SAME PDF HAVE MAXIMUM OF 3 HEADINGS !!!Summarize the text in the style of:' + vibe + 'heres the text:' + textData,
         },
       ],
       max_tokens: 600,
-      temperature: 0.5,
+      temperature: 1.5,
+      top_p: 1,
+      frequency_penalty: 0.59,
+      presence_penalty: 0.18,
       n: 1,
     });
     // console.log('OpenAI API Response:', response.messages[0].content);
@@ -59,8 +62,11 @@ async function improveSummary(summary, improvement) {
           content: '!!IMPORTANT: Output in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else. Improve the following summary in the style of: ' + improvement + '----- heres the summary: ' + summary,
         },
       ],
-      max_tokens: 420,
-      temperature: 0.5,
+      max_tokens: 700,
+      temperature: 1.5,
+      top_p: 1,
+      frequency_penalty: 0.59,
+      presence_penalty: 0.18,
       n: 1,
     });
     // console.log('OpenAI API Response:', response.messages[0].content);

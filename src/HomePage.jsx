@@ -1,5 +1,5 @@
 import CustomHeader from "./CustomHeader";
-import { Badge, Button, Center, FileButton, Flex, Group, Select, Text, Textarea, Title, TypographyStylesProvider } from "@mantine/core";
+import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, Select, Text, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -16,7 +16,8 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { TypeAnimation } from "react-type-animation";
 import { auth } from "./Firebase/Firebase";
 import { Dropzone } from '@mantine/dropzone';
-import { IconBook2, IconPdf, IconUpload, IconX } from "@tabler/icons-react";
+import html2pdf from "html2pdf.js";
+import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconX } from "@tabler/icons-react";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -244,7 +245,47 @@ const HomePage = () => {
     event.preventDefault();
     const selectedFile = event.dataTransfer.files[0];
     setFile(selectedFile);
+    setIsUploaded(false);
   };
+
+  
+  const downloadSummary = () => {
+    const element = document.getElementById("summary"); // Add an id to the summary element
+  
+    // Customize the content
+    const header = document.createElement("div");
+    header.innerText = `Summary in the style of ${vibe}`;
+    element.insertBefore(header, element.firstChild);
+  
+    const footer = document.createElement("div");
+    footer.innerText = "GENERATED USING RIKA AI";
+    element.appendChild(footer);
+  
+    // Use html2pdf library to convert the HTML element to PDF with custom options
+    html2pdf()
+    .set({
+      margin: [20, 20, 20, 20], // Set top, right, bottom, and left margins (in millimeters)
+      filename: `${'RIKA AI '+ fileName + vibe + new Date().toLocaleString('en-GB', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' })}`, // Set the filename of the downloaded PDF
+    })
+    .from(element)
+    .save()
+    .then(() => {
+      // Remove the watermark element after the PDF is generated
+      header.remove();
+      footer.remove();
+    });
+};
+
+  const handleReset = () => {
+    setFile(null);
+    setText("");
+    setSummary("");
+    setIsUploaded(false);
+    setImprovePrompt("");
+  };
+
+  
+  
 
   return (
     <>
@@ -255,6 +296,7 @@ const HomePage = () => {
       console.log(files);
       setFile(files[0]);
       setActive(false);
+      setIsUploaded(false);
     }}
   >
     <Group position="center" spacing="xl" mih={220} sx={{ pointerEvents: 'none' }}>
@@ -301,7 +343,7 @@ const HomePage = () => {
           <Center mt={50}>
             <Flex gap={30} direction={"column"}> 
             <Flex gap={10} direction={"column"}>
-              <Flex gap={20}>
+              <Flex gap={20} align={'center'}>
               <Title ml={12} fz={22}>
                 {" "}
                 1: Select your PDF File{" "}
@@ -338,7 +380,13 @@ const HomePage = () => {
                     </Text>
                     <div style={{flex: 1}}></div>
 
-                    {(file === null || isUploaded) && (
+                    {(file === null || isUploaded) && (<Flex align={'center'} gap={10}>
+                      {isUploaded ? (
+                        <Tooltip label="Reset" position="left">
+                      <ActionIcon color="red" size="lg" radius="xl" onClick={handleReset}>
+                        <IconReload size="1.625rem" />
+                      </ActionIcon>
+                      </Tooltip>):''}
                       <FileButton onChange={(selectedFile) => {
                         setFile(selectedFile);
                         setIsUploaded(false);
@@ -348,7 +396,7 @@ const HomePage = () => {
                             {isUploaded ? "Reselect PDF" : "Select PDF"}
                           </Button>
                         )}
-                      </FileButton>
+                      </FileButton></Flex>
                     )}
 
                     {fileName && !isUploaded && (
@@ -485,13 +533,13 @@ const HomePage = () => {
                 
                 
                 <TypographyStylesProvider>
-                    <div dangerouslySetInnerHTML={{ __html: `${summary}` }} />
+                    <div id="summary" dangerouslySetInnerHTML={{ __html: `${summary}` }} />
                 </TypographyStylesProvider>
 
                 </Flex>
             </Flex>) :''}
 
-           {summary ? (<Button disabled={isLoading} color="dark">Download Summary</Button>) : ''}
+           {summary ? (<Button disabled={isLoading} onClick={downloadSummary} color="dark" leftIcon={<IconDownload/>}>Download Summary</Button>) : ''}
 
 
             </Flex>
