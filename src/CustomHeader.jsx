@@ -19,6 +19,7 @@ import {
   rem,
   Title,
   Flex,
+  Avatar,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,6 +28,7 @@ import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { UserAuth } from "./Context/AuthContext";
+import { IconBrandGoogle } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   link: {
@@ -125,6 +127,7 @@ export default function CustomHeader() {
   const navigate = useNavigate();
   const { signIn } = UserAuth();
   const auth = getAuth();
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user"))); // Get user from local storage
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Set login state to false by default
 
   const handleGoogleSignIn = async () => {
@@ -148,7 +151,6 @@ export default function CustomHeader() {
 
   //create a useEffect to check if user is logged in
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
       setIsLoggedIn(true);
     }
@@ -296,22 +298,27 @@ export default function CustomHeader() {
           </Group>
 
           <Group className={classes.hiddenMobile}>
-            <Button color="dark">Contact</Button>
+            <Button color="dark" variant="subtle">Contact</Button>
 
             { !isLoggedIn ? (<Flex gap={10} justify={'center'} align={'center'}>
            
-            <Button onClick={handleGoogleSignIn} color="yellow" leftIcon={ <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-google" width="24" height="24" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M17.788 5.108a9 9 0 1 0 3.212 6.892h-8"></path>
-            </svg>}>
+            <Button onClick={handleGoogleSignIn}
+            variant="gradient" gradient={{ from: 'orange', to: 'red' }}
+             leftIcon={<IconBrandGoogle size="1.5rem"/>}>
               Log in with Google
             </Button>
             </Flex>) : ''}
            
            
-            {isLoggedIn ?(<Button onClick={handleLogout} color="red" variant="outline">
+            {isLoggedIn ?(
+              <Flex gap={20} align={'center'}>
+            <Button onClick={handleLogout} color="red" variant="gradient">
               Logout
-            </Button>):''}
+            </Button>
+            <Text>{user.displayName}</Text>
+            <Avatar size="md" src={user.photoURL} />
+            </Flex>
+            ):''}
           </Group>
 
           <Burger

@@ -12,7 +12,9 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@mantine/core": "^6.0.16",
+    "@mantine/dropzone": "^6.0.16",
     "@mantine/hooks": "^6.0.16",
+    "@tabler/icons-react": "^2.25.0",
     "axios": "^1.4.0",
     "express": "^4.18.2",
     "firebase": "^10.0.0",

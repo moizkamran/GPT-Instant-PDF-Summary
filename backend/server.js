@@ -28,10 +28,10 @@ async function sendToOpenAI(textData, vibe) {
       messages: [
         {
           role: 'user',
-          content: 'summarize the text in the style of:' + vibe + 'heres the text:' + textData,
+          content: '!!IMPORTANT: Output the summary in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else MAXIMUM 400 words REMOVE any conetnt which would not be relavent in a summary. Summarize the text in the style of:' + vibe + 'heres the text:' + textData,
         },
       ],
-      max_tokens: 420,
+      max_tokens: 600,
       temperature: 0.5,
       n: 1,
     });
@@ -56,7 +56,7 @@ async function improveSummary(summary, improvement) {
       messages: [
         {
           role: 'user',
-          content: '!JUST OUTPUT THE TEXT! Improve the following summary in the style of: ' + improvement + '----- heres the summary: ' + summary,
+          content: '!!IMPORTANT: Output in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else. Improve the following summary in the style of: ' + improvement + '----- heres the summary: ' + summary,
         },
       ],
       max_tokens: 420,

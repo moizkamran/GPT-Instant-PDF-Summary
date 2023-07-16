@@ -1,5 +1,5 @@
 import CustomHeader from "./CustomHeader";
-import { Badge, Button, Center, FileButton, Flex, Select, Text, Textarea, Title } from "@mantine/core";
+import { Badge, Button, Center, FileButton, Flex, Group, Select, Text, Textarea, Title, TypographyStylesProvider } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -15,6 +15,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { TypeAnimation } from "react-type-animation";
 import { auth } from "./Firebase/Firebase";
+import { Dropzone } from '@mantine/dropzone';
+import { IconBook2, IconPdf, IconUpload, IconX } from "@tabler/icons-react";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -26,6 +28,8 @@ const HomePage = () => {
   const [vibe, setVibe] = useState(null); // ['formal', 'informal', 'casual
   const [isUploaded, setIsUploaded] = useState(false);
   const [improvePrompt, setImprovePrompt] = useState("");
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [userSummaryCount, setUserSummaryCount] = useState(0);
 
   // Limits
   const summaryLimit = 100;
@@ -50,9 +54,14 @@ const HomePage = () => {
 
   const userUid = user?.uid;
 
-  console.log(userUid);
+  // create an use effet to check if the user is logged in
+  useEffect(() => {
+    if (user) {
+      setIsUserLoggedIn(true);
+    }
+  }, []);
 
-
+  const [active, setActive] = useState(false);
   const wordCountCalc = (str) => {
     return str.split(" ").length;
   };
@@ -63,6 +72,13 @@ const HomePage = () => {
     if (!file) {
       return;
     }
+
+    // alert user to login if they are not logged in
+    if (!isUserLoggedIn) {
+      alert("Please login to continue");
+      return;
+    }
+
 
     setIsLoading(true);
     
@@ -120,6 +136,7 @@ const HomePage = () => {
         const data = docSnap.data();
         const wordCountHistory = data.wordCountHistory || [];
         wordCountHistory.push({ wordCount: wordCount, timestamp: new Date(), text: summary });
+        setUserSummaryCount(wordCountHistory.length);
 
         // Check the length of word count history
         if (wordCountHistory.length > summaryLimit) {
@@ -145,6 +162,23 @@ const HomePage = () => {
       return false;
     }
   };
+
+  //create a word count history length check USE EFFECT
+  useEffect(() => {
+    if (userUid) {
+      const db = getFirestore();
+      const docRef = doc(db, "users", userUid);
+
+      // Get the existing document data
+      const docSnap = getDoc(docRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const wordCountHistory = data.wordCountHistory || [];
+          setUserSummaryCount(wordCountHistory.length);
+        }
+      });
+    }
+  }, []);
 
   const handleSummarize = async (event) => {
     event.preventDefault();
@@ -201,19 +235,6 @@ const HomePage = () => {
     }
   };
 
-  function logout() {
-    auth
-      .signOut()
-      .then(function () {
-        // Logout successful. You can perform any additional tasks or redirection here.
-        console.log("User logged out");
-        navigate("/"); // Navigate to the root route
-      })
-      .catch(function (error) {
-        // An error occurred while logging out.
-        console.log("Logout error:", error);
-      });
-  }
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -226,6 +247,45 @@ const HomePage = () => {
   };
 
   return (
+    <>
+    <Dropzone.FullScreen
+    active={true}
+    accept={['application/pdf']}
+    onDrop={(files) => {
+      console.log(files);
+      setFile(files[0]);
+      setActive(false);
+    }}
+  >
+    <Group position="center" spacing="xl" mih={220} sx={{ pointerEvents: 'none' }}>
+      <Dropzone.Accept>
+        <IconUpload
+          size="3.2rem"
+          stroke={1.5}
+          color={"black"}
+        />
+      </Dropzone.Accept>
+      <Dropzone.Reject>
+        <IconX
+          size="3.2rem"
+          stroke={1.5}
+          color={"black"}
+        />
+      </Dropzone.Reject>
+      <Dropzone.Idle>
+        <IconPdf size="3.2rem" stroke={1.5} />
+      </Dropzone.Idle>
+
+      <div>
+        <Text size="xl" inline>
+          Drag images here or click to select files
+        </Text>
+        <Text size="sm" color="dimmed" inline mt={7}>
+          Attach as many files as you like, each file should not exceed 5mb
+        </Text>
+      </div>
+    </Group>
+    </Dropzone.FullScreen>
     <div>
       <CustomHeader />
       <Center>
@@ -234,6 +294,9 @@ const HomePage = () => {
             <Text fz={20}>Rika</Text>
             <Title>Summarize PDF</Title>
             <Text>Use Rika'AI to generate a PDF summary</Text>
+            {isUserLoggedIn && userSummaryCount ? (<Badge color="grape" size="xl" mt={20}>
+              {userSummaryCount}/{summaryLimit} summaries
+            </Badge>):''}
           </Flex>
           <Center mt={50}>
             <Flex gap={30} direction={"column"}> 
@@ -402,12 +465,7 @@ const HomePage = () => {
             
             { summary ? (<Flex gap={10} direction={"column"}>
               <Flex gap={20} align={'center'}>
-              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-writing" width="50" height="50" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                <path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2z"></path>
-                <path d="M16 7h4"></path>
-                <path d="M18 19h-13a2 2 0 1 1 0 -4h4a2 2 0 1 0 0 -4h-3"></path>
-              </svg>
+            <IconBook2 size="3.2rem" stroke={1.5} />
                 <Title ml={12} fz={26}>
                     Summary
                 </Title>
@@ -415,29 +473,25 @@ const HomePage = () => {
                 <Flex  style={{
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "center",
+                      justifyContent: "flex-start", // Change from "center" to "flex-start"
                       border: "2px dashed black",
                       borderRadius: "10px",
                       width: "600px",
-                      height: "400px",
+                      minHeight: "400px",
+                      maxHeight: "400px",
                       padding: "10px 20px 10px 20px",
-                      overflow: "hidden",
+                      overflowY: "scroll",
                     }}>
                 
-
-                  <Textarea
-                    value={summary}
-                    readOnly
-                    w={"100%"}
-                    h={"100%"}
-                    autosize
-                    maxRows={17}
-                  />
+                
+                <TypographyStylesProvider>
+                    <div dangerouslySetInnerHTML={{ __html: `${summary}` }} />
+                </TypographyStylesProvider>
 
                 </Flex>
             </Flex>) :''}
 
-           <Button color="dark">Download Summary</Button>
+           {summary ? (<Button disabled={isLoading} color="dark">Download Summary</Button>) : ''}
 
 
             </Flex>
@@ -446,6 +500,7 @@ const HomePage = () => {
         </Flex>
       </Center>
     </div>
+    </>
   );
 };
 
