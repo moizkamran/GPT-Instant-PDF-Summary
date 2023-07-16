@@ -15,10 +15,6 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use("/", (req, res) => {
-  res.send("Welcome to PDFAI Summary API");
-})
-
 async function sendToOpenAI(textData, vibe) {
   const configuration = new Configuration({
     apiKey: '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',
