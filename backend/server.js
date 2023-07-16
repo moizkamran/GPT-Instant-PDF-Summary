@@ -8,19 +8,16 @@ import cors from "cors";
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
-const allowedOrigins = ["http://localhost:5173", "https://rika-1.web.app/", "101.53.233.193"];
+const allowedOrigins = ["http://localhost:5173", "https://pdfai-summary.web.app/", "101.53.233.193"];
 app.use(cors({
   origin: allowedOrigins,
-  credentials: true
 }));
 
 app.use(express.json());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
+
+app.use("/", (req, res) => {
+  res.send("Welcome to PDFAI Summary API");
+})
 
 async function sendToOpenAI(textData, vibe) {
   const configuration = new Configuration({
@@ -78,6 +75,10 @@ async function improveSummary(summary, improvement) {
   }
 }
 
+app.get('/statusHealth', (req, res) => {
+  res.json({ status: 'healthy' });
+});
+
 app.post('/upload', upload.single('pdf'), async (req, res) => {
   const { path } = req.file;
 
@@ -126,6 +127,13 @@ app.post('/improve', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('🤖 api listening on port 3000');
+app.listen(8080, () => {
+  console.log('🤖 api listening on port 8080');
+});
+
+app.use((err, req, res, next) => {
+  const errorStatus = err.status || 500;
+  const errorMessage = err.message || "Something went wrong!";
+
+  return res.status(errorStatus).send(errorMessage);
 });

@@ -90,7 +90,7 @@ const HomePage = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/upload",
+        "https://pdf-ai-production.up.railway.app/upload",
         formData,
         {
           headers: {
@@ -118,7 +118,7 @@ const HomePage = () => {
 
   const summarizeText = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/summary", { text, vibe });
+      const response = await axios.post("https://pdf-ai-production.up.railway.app/summary", { text, vibe });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
@@ -208,7 +208,7 @@ const HomePage = () => {
 
   const improveText = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/improve", { summary: summary, improvement: improvePrompt });
+      const response = await axios.post("https://pdf-ai-production.up.railway.app/improve", { summary: summary, improvement: improvePrompt });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
