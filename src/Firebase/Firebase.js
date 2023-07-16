@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 
 // Import the functions you need from the SDKs you need
@@ -10,13 +11,13 @@ import { getStorage } from "firebase/storage";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCWswjh801ZPdVJIBSrc2iTct4ZGeAHy8A",
-  authDomain: "rika-1.firebaseapp.com",
-  projectId: "rika-1",
-  storageBucket: "rika-1.appspot.com",
-  messagingSenderId: "318737227763",
-  appId: "1:318737227763:web:543389b24bf97714ba3c86",
-  measurementId: "G-86KELKS01J"
+  apiKey: "AIzaSyDMTCeb2-hkxcACW06xa8sAP0dRbRkqbvI",
+  authDomain: "pdfai-summary.firebaseapp.com",
+  projectId: "pdfai-summary",
+  storageBucket: "pdfai-summary.appspot.com",
+  messagingSenderId: "152940432077",
+  appId: "1:152940432077:web:681d2e8b16c7960d077784",
+  measurementId: "G-85XKYYHE2H"
 };
 
 // Initialize Firebase
@@ -24,5 +25,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 const firestore = getFirestore(app); // Change this line to getFirestore instead of getDatabase
 export const storage = getStorage(app);
+const analytics = getAnalytics(app);
 export default app;
 export { firestore };
