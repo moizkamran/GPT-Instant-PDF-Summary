@@ -7,6 +7,9 @@ import { ToastContainer, toast } from "react-toastify";
 import { UserAuth } from "../Context/AuthContext";
 
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
   const navigate = useNavigate();
   const { signIn } = UserAuth();
   const auth = getAuth();
@@ -15,13 +18,6 @@ const Login = () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      //save user to localstotage
-      signIn();
-      localStorage.setItem("user", JSON.stringify(auth.currentUser));
-      toast.success("Signed in with Google successfully", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-
       navigate("/gpt"); // Redirect to the desired page after successful login
     } catch (error) {
       console.error(error.message);
@@ -30,8 +26,6 @@ const Login = () => {
       });
     }
   };
-  
-
   return (
     <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
       <div style={{ background: 'white', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)', padding: '20px', borderRadius: '4px' }}>

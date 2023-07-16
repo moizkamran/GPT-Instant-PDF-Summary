@@ -142,7 +142,6 @@ const GptFile = () => {
       .then(function () {
         // Logout successful. You can perform any additional tasks or redirection here.
         console.log("User logged out");
-        localStorage.removeItem("user"); // Remove user from localStorage
         navigate("/"); // Navigate to the root route
       })
       .catch(function (error) {
@@ -150,6 +149,7 @@ const GptFile = () => {
         console.log("Logout error:", error);
       });
   }
+
   const handleDragOver = (event) => {
     event.preventDefault();
   };
