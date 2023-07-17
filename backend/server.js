@@ -6,12 +6,14 @@ import { Configuration, OpenAIApi } from 'openai';
 import cors from "cors";
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
 
-const allowedOrigins = ["http://localhost:5173", "https://pdfai-summary.web.app/", "101.53.233.193"];
+
+const allowedOrigins = ["http://localhost:5173", "https://pdfai-summary.web.app", "101.53.233.193"];
 app.use(cors({
   origin: allowedOrigins,
 }));
+
+const upload = multer({ dest: 'uploads/' });
 
 app.use(express.json());
 

@@ -188,7 +188,7 @@ export default function CustomHeader() {
     <Box pb={120}>
       <Header height={60} px="md">
         <Group position="apart" sx={{ height: "100%" }}>
-          <Title>RIKA</Title>
+          <Title>PDFai</Title>
           <Group
             sx={{ height: "100%" }}
             spacing={0}

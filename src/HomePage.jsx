@@ -1,5 +1,5 @@
 import CustomHeader from "./CustomHeader";
-import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, LoadingOverlay, Select, Text, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
+import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, LoadingOverlay, Select, Text, Textarea, Title, Tooltip, Transition, TypographyStylesProvider } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -18,6 +18,8 @@ import { auth } from "./Firebase/Firebase";
 import { Dropzone } from '@mantine/dropzone';
 import html2pdf from "html2pdf.js";
 import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconX } from "@tabler/icons-react";
+import newRequest from "./utils/createRequest";
+import { ToastContainer, toast } from "react-toastify";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -89,8 +91,8 @@ const HomePage = () => {
     formData.append("pdf", file);
 
     try {
-      const response = await axios.post(
-        "https://pdf-ai-production.up.railway.app/upload",
+      const response = await newRequest.post(
+        "/upload",
         formData,
         {
           headers: {
@@ -100,6 +102,10 @@ const HomePage = () => {
       );
       setText(response.data.text);
       setIsUploaded(true);
+      toast.success("🥳 PDF Uploaded Successfully", {
+        position: toast.POSITION.BOTTOM_RIGHT,
+        autoClose: 1000,
+      });
     } catch (error) {
       console.log(error);
       setText("Failed to upload the PDF");
@@ -118,7 +124,7 @@ const HomePage = () => {
 
   const summarizeText = async () => {
     try {
-      const response = await axios.post("https://pdf-ai-production.up.railway.app/summary", { text, vibe });
+      const response = await newRequest.post("/summary", { text, vibe });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
@@ -208,7 +214,7 @@ const HomePage = () => {
 
   const improveText = async () => {
     try {
-      const response = await axios.post("https://pdf-ai-production.up.railway.app/improve", { summary: summary, improvement: improvePrompt });
+      const response = await newRequest.post("/improve", { summary: summary, improvement: improvePrompt });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
@@ -259,14 +265,14 @@ const HomePage = () => {
     element.insertBefore(header, element.firstChild);
   
     const footer = document.createElement("div");
-    footer.innerText = "GENERATED USING RIKA AI";
+    footer.innerText = "GENERATED USING PDF AI";
     element.appendChild(footer);
   
     // Use html2pdf library to convert the HTML element to PDF with custom options
     html2pdf()
     .set({
       margin: [20, 20, 20, 20], // Set top, right, bottom, and left margins (in millimeters)
-      filename: `${'RIKA AI '+ fileName + vibe + new Date().toLocaleString('en-GB', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' })}`, // Set the filename of the downloaded PDF
+      filename: `${'PDF AI '+ fileName + vibe + new Date().toLocaleString('en-GB', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' })}`, // Set the filename of the downloaded PDF
     })
     .from(element)
     .save()
@@ -290,6 +296,7 @@ const HomePage = () => {
 
   return (
     <>
+    <ToastContainer /> 
     <Dropzone.FullScreen
     active={true}
     accept={['application/pdf']}
@@ -334,9 +341,9 @@ const HomePage = () => {
       <Center>
         <Flex direction={"column"}>
           <Flex align={"center"} direction={"column"}>
-            <Text fz={20}>Rika</Text>
+            <Text fz={20}>PDFai</Text>
             <Title>Summarize PDF</Title>
-            <Text>Use Rika'AI to generate a PDF summary</Text>
+            <Text>Use PDFai to generate a PDF summary</Text>
             {isUserLoggedIn && userSummaryCount ? (<Badge color="grape" size="xl" mt={20}>
               {userSummaryCount}/{summaryLimit} summaries
             </Badge>):''}
@@ -415,61 +422,69 @@ const HomePage = () => {
               </form>
              
             </Flex>
-           {isUploaded ? ( <Flex gap={10} direction={"column"}>
-              <Title ml={12} fz={22}>
-                {" "}
-                2: Select your vibe {" "}
-              </Title>
-                <Flex   style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      border: "2px dashed black",
-                      borderRadius: "10px",
-                      width: "600px",
-                      height: "45px",
-                      padding: "10px 20px 10px 20px",
-                      alignContent: "center",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      justifyItems: "center",
-                    }}>
-                    <Select
+            
+            <Transition mounted={isUploaded} transition="slide-up" duration={800} timingFunction="ease">
+              {(styles) => <div style={styles}>
+            
+            <Flex gap={10} direction={"column"}>
+               <Title ml={12} fz={22}>
+                 {" "}
+                 2: Select your vibe {" "}
+               </Title>
+                 <Flex   style={{
+                       display: "flex",
+                       flexDirection: "row",
+                       border: "2px dashed black",
+                       borderRadius: "10px",
+                       width: "600px",
+                       height: "45px",
+                       padding: "10px 20px 10px 20px",
+                       alignContent: "center",
+                       alignItems: "center",
+                       justifyContent: "center",
+                       justifyItems: "center",
+                     }}>
+                     <Select
+ 
+                       value={vibe}
+                       onChange={(value) => setVibe(value)}
+                       styles={{
+                         root: {
+                           border: "none !important",
+                           borderRadius: "10px",
+                         },
+                         item: {
+                           // applies styles to selected item
+                           '&[data-selected]': {
+                             '&, &:hover': {
+                               backgroundColor: "black",
+                               color: "white",
+                             },
+                           },
+                 
+                           // applies styles to hovered item (with mouse or keyboard)
+                           '&[data-hovered]': {},
+                         },
+                       }}
+                       data={vibeStyles}
+                       placeholder="Select your vibe"
+                     /> <div style={{flex: 1}}></div>
+                      { vibe ? ( <Button
+                 onClick={handleSummarize}
+                 loading={isLoading}
+                 disabled={isLoading}
+                 color="dark"
+               >
+                 Summarize
+               </Button>) :''}
+                 </Flex>
+             </Flex></div>}
+            </Transition>
 
-                      value={vibe}
-                      onChange={(value) => setVibe(value)}
-                      styles={{
-                        root: {
-                          border: "none !important",
-                          borderRadius: "10px",
-                        },
-                        item: {
-                          // applies styles to selected item
-                          '&[data-selected]': {
-                            '&, &:hover': {
-                              backgroundColor: "black",
-                              color: "white",
-                            },
-                          },
-                
-                          // applies styles to hovered item (with mouse or keyboard)
-                          '&[data-hovered]': {},
-                        },
-                      }}
-                      data={vibeStyles}
-                      placeholder="Select your vibe"
-                    /> <div style={{flex: 1}}></div>
-                     { vibe ? ( <Button
-                onClick={handleSummarize}
-                loading={isLoading}
-                disabled={isLoading}
-                color="dark"
-              >
-                Summarize
-              </Button>) :''}
-                </Flex>
-            </Flex>):''}
-
-            {summary ? (<Flex gap={10} direction={"column"}>
+           
+            <Transition mounted={summary} transition="slide-up" duration={800} timingFunction="ease">
+              {(styles) => <div style={styles}>              
+           <Flex gap={10} direction={"column"}>
               <Title ml={12} fz={22}>
                 {" "}
                 3: Improve Summary{" "}
@@ -510,12 +525,14 @@ const HomePage = () => {
                 Improve
               </Button>) :''}
               </Flex>
-            </Flex>): ''}
+            </Flex></div>}
+            </Transition>
             
-            { summary ? (<Flex gap={10} direction={"column"}>
-              <Flex gap={20} align={'center'}>
+            { summary ? (
+            <Flex gap={10} direction={"column"}>
+              <Flex gap={8} align={'center'}>
             <IconBook2 size="3.2rem" stroke={1.5} />
-                <Title ml={12} fz={26}>
+                <Title ml={5} fz={26}>
                     Summary
                 </Title>
               </Flex>
