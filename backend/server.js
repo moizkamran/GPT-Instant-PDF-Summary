@@ -28,17 +28,22 @@ async function sendToOpenAI(textData, vibe) {
     const response = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [
+        { role: 'system', content: 'You will be provided with a pdf, and your task is to summarize the pdf as follows:\n\n-Overall summary of discussion\n-Action items (what needs to be done and who is doing it)\n-If applicable, a list of topics that need to be discussed more fully in the next meeting. Output the result in html tags only <p> <h2> and <li> and <br>' },
         {
           role: 'user',
-          content: 'Summarize the text in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else MAXIMUM 400 words REMOVE any content which would not be relavent in a summary. DO NOT JUST OUTPUT THE SAME PDF HAVE MAXIMUM OF 3 HEADINGS !!!Summarize the text in the style of:' + vibe + 'heres the text:' + textData,
+          content:'\n\ vibe: ' + vibe + '\n\ PDF:  '+ textData,
         },
       ],
-      max_tokens: 600,
-      temperature: 0.9,
-      n: 1,
+      temperature: 0,
+      max_tokens: 1024,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
     });
-    // console.log('OpenAI API Response:', response.messages[0].content);
-    return response.data.choices[0].message.content;
+
+    const summary = response.data.choices[0].message.content;
+    console.log('Generated Summary:', summary);
+    return summary;
   } catch (error) {
     console.error('OpenAI API Error:', error.response.data);
     throw error;
@@ -67,6 +72,40 @@ async function improveSummary(summary, improvement) {
     });
     // console.log('OpenAI API Response:', response.messages[0].content);
     return response.data.choices[0].message.content;
+  } catch (error) {
+    console.error('OpenAI API Error:', error.response.data);
+    throw error;
+  }
+}
+
+async function answerQuestion(text, question) {
+  const configuration = new Configuration({
+    apiKey: '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',
+  });
+  const openai = new OpenAIApi(configuration);
+  console.log('Sending to OpenAI:', question);
+
+  try {
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: 'You will be provided with a pdf and a question, and your task is to answer the question using the pdf as scope. output the result in html tags only <p> <h2> and <li> and <br>' },
+        {
+          role: 'user',
+          content: '\n\ PDF:  '+ text + '\n\ ---question: ' + question
+        },
+      ],
+      temperature: 0,
+      max_tokens: 1024,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    });
+
+    const answer = response.data.choices[0].message.content;
+    console.log('Generated Summary:', answer);
+    console.log('Generated Answer:', answer);
+    return answer;
   } catch (error) {
     console.error('OpenAI API Error:', error.response.data);
     throw error;
@@ -122,6 +161,18 @@ app.post('/improve', async (req, res) => {
   } catch (error) {
     console.error('Error improving summary with OpenAI:', error);
     res.status(500).json({ error: 'Error improving summary with OpenAI' });
+  }
+});
+
+app.post('/question', async (req, res) => {
+  const { text, question } = req.body;
+
+  try {
+    const answer = await answerQuestion(text, question);
+    res.json({ answer: answer });
+  } catch (error) {
+    console.error('Error answering question with OpenAI:', error);
+    res.status(500).json({ error: 'Error answering question with OpenAI' });
   }
 });
 
