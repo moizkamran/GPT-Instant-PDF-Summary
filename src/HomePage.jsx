@@ -17,7 +17,7 @@ import { TypeAnimation } from "react-type-animation";
 import { auth } from "./Firebase/Firebase";
 import { Dropzone } from '@mantine/dropzone';
 import html2pdf from "html2pdf.js";
-import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconX } from "@tabler/icons-react";
+import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconWritingSign, IconX } from "@tabler/icons-react";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -292,7 +292,7 @@ const HomePage = () => {
     <>
     <Dropzone.FullScreen
     active={true}
-    accept={['application/pdf']}
+    accept={['video/mp4']}
     onDrop={(files) => {
       console.log(files);
       setFile(files[0]);
@@ -334,9 +334,9 @@ const HomePage = () => {
       <Center>
         <Flex direction={"column"}>
           <Flex align={"center"} direction={"column"}>
-            <Text fz={20}>Rika</Text>
-            <Title>Summarize PDF</Title>
-            <Text>Use Rika'AI to generate a PDF summary</Text>
+            <Text fz={20}>VR Tools</Text>
+            <Title>Research Access</Title>
+            <Text>Generate research access page</Text>
             {isUserLoggedIn && userSummaryCount ? (<Badge color="grape" size="xl" mt={20}>
               {userSummaryCount}/{summaryLimit} summaries
             </Badge>):''}
@@ -347,7 +347,7 @@ const HomePage = () => {
               <Flex gap={20} align={'center'}>
               <Title ml={12} fz={22}>
                 {" "}
-                1: Select your PDF File{" "}
+                1: Select video{" "}
               </Title>
             {isUploaded ? (
               <Badge color={wordCount <= wordLimit ? "green" : "red"} variant="light">
@@ -377,7 +377,7 @@ const HomePage = () => {
               >
          
                     <Text>
-                      {fileName ? (fileName.length > 50 ? fileName.substring(0, 50) + "..." : fileName) : "Drag or Upload the PDF to be summarized"}
+                      {fileName ? (fileName.length > 50 ? fileName.substring(0, 50) + "..." : fileName) : "Drag or Upload the Video to be uploaded to YouTube"}
                     </Text>
                     <div style={{flex: 1}}></div>
 
@@ -391,10 +391,10 @@ const HomePage = () => {
                       <FileButton onChange={(selectedFile) => {
                         setFile(selectedFile);
                         setIsUploaded(false);
-                      }} accept="application/pdf" bg="black">
+                      }} accept="video/mp4" bg="black">
                         {(props) => (
                           <Button {...props}>
-                            {isUploaded ? "Reselect PDF" : "Select PDF"}
+                            {isUploaded ? "Reselect Video" : "Select Video"}
                           </Button>
                         )}
                       </FileButton></Flex>
@@ -418,7 +418,7 @@ const HomePage = () => {
            {isUploaded ? ( <Flex gap={10} direction={"column"}>
               <Title ml={12} fz={22}>
                 {" "}
-                2: Select your vibe {" "}
+                2: Select script {" "}
               </Title>
                 <Flex   style={{
                       display: "flex",
@@ -472,7 +472,7 @@ const HomePage = () => {
             {summary ? (<Flex gap={10} direction={"column"}>
               <Title ml={12} fz={22}>
                 {" "}
-                3: Improve Summary{" "}
+                3: Provide Instructions{" "}
               </Title>
               <Flex
                 style={{
@@ -516,7 +516,7 @@ const HomePage = () => {
               <Flex gap={20} align={'center'}>
             <IconBook2 size="3.2rem" stroke={1.5} />
                 <Title ml={12} fz={26}>
-                    Summary
+                    Reseach Access Page Preview
                 </Title>
               </Flex>
                 <Flex  style={{
@@ -541,7 +541,7 @@ const HomePage = () => {
                 </Flex>
             </Flex>) :''}
 
-           {summary ? (<Button disabled={isLoading} onClick={downloadSummary} color="dark" leftIcon={<IconDownload/>}>Download Summary</Button>) : ''}
+           {summary ? (<Button disabled={isLoading} onClick={downloadSummary} color="dark" leftIcon={<IconWritingSign/>}>Publish Page</Button>) : ''}
 
 
             </Flex>
