@@ -1,5 +1,5 @@
 import CustomHeader from "./CustomHeader";
-import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, LoadingOverlay, Select, Text, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
+import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, Input, LoadingOverlay, MultiSelect, Select, Text, TextInput, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -14,10 +14,11 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { TypeAnimation } from "react-type-animation";
-import { auth } from "./Firebase/Firebase";
+import app, { auth } from "./Firebase/Firebase";
 import { Dropzone } from '@mantine/dropzone';
 import html2pdf from "html2pdf.js";
 import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconWritingSign, IconX } from "@tabler/icons-react";
+import { getAuth } from "firebase/auth";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -285,6 +286,38 @@ const HomePage = () => {
     setImprovePrompt("");
   };
 
+  const [tags, setTags] = useState([]);
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoDescription, setVideoDescription] = useState("");
+
+  const handleYTUpload = async () => {
+    event.preventDefault();
+    try {
+      // Get the user's access token from Firebase Auth
+      const user = auth.currentUser;
+      if (!user) {
+        console.log("User not logged in.");
+        return;
+      }
+  
+      const accessToken = await user.getIdToken();
+  
+      const formData = new FormData();
+      formData.append("videoTitle", videoTitle);
+      formData.append("videoDescription", videoDescription);
+      formData.append("videoFile", file);
+  
+      const response = await axios.post("http://localhost:3000/uploadToYouTube", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${accessToken}`, // Pass the access token in the Authorization header
+        },
+      });
+      console.log(response.data.summary);
+    } catch (error) {
+      console.log("Error uploading to YouTube:", error);
+    }
+  };
   
   
 
@@ -359,7 +392,7 @@ const HomePage = () => {
               </Flex>
              
               <form
-                onSubmit={handleUpload}
+                onSubmit={handleYTUpload}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 style={{
@@ -400,7 +433,7 @@ const HomePage = () => {
                       </FileButton></Flex>
                     )}
 
-                    {fileName && !isUploaded && (
+                    {fileName && !isUploaded && (<>
                       <Button
                         type="submit"
                         loading={isLoading}
@@ -410,10 +443,37 @@ const HomePage = () => {
                       >
                         Upload
                       </Button>
+                      </>
                     )}
 
               </form>
-             
+              {fileName && !isUploaded && (<>
+              <Flex direction={'column'} w={'100%'} gap={10}>
+                        <TextInput placeholder="Video Title" 
+                        onChange={(event) => setVideoTitle(event.currentTarget.value)}
+                        defaultValue={fileName}
+                        label="Video Title"
+                        />
+                        <TextInput placeholder="Video Description" 
+                        onChange={(event) => setVideoDescription(event.currentTarget.value)}
+                        label="Video Description"
+                        />
+                        <MultiSelect
+                          label="Video Tags"
+                          placeholder="add tags"
+                          searchable
+                          data={tags}
+                          onChange={setTags}
+                          creatable
+                          getCreateLabel={(query) => `+ Create ${query}`}
+                          onCreate={(query) => {
+                            const item = { value: query, label: query };
+                            setTags((current) => [...current, item]);
+                            return item;
+                          }}
+                        />
+                      </Flex>
+             </>)}
             </Flex>
            {isUploaded ? ( <Flex gap={10} direction={"column"}>
               <Title ml={12} fz={22}>

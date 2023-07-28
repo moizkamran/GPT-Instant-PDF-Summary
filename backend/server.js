@@ -3,6 +3,8 @@ import fs from 'fs';
 import multer from 'multer';
 import { PDFExtract } from 'pdf.js-extract';
 import { Configuration, OpenAIApi } from 'openai';
+import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 import cors from "cors";
 
 const app = express();
@@ -21,6 +23,49 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
+const youtube = google.youtube({
+  version: 'v3',
+  auth: 'Bearer AIzaSyDwFPb9MMC8NIxM4CYQzWe_Xr_oelpc2Pc', // Replace with your API key
+});
+
+const CLIENT_ID = 'AIzaSyCWswjh801ZPdVJIBSrc2iTct4ZGeAHy8A'; // Replace with your Firebase client ID
+
+app.post('/uploadToYouTube', upload.single('videoFile'), async (req, res) => {
+  const { videoTitle, videoDescription } = req.body;
+  const { path } = req.file; // The path to the temporary uploaded file
+
+  try {
+    // Verify the user's access token using the OAuth2Client
+    const authClient = new OAuth2Client(CLIENT_ID);
+    const token = req.header('Authorization').split(' ')[1];
+    const ticket = await authClient.verifyIdToken({
+      idToken: token,
+    });
+    const userId = ticket.getPayload().sub;
+    // If required, you can check if the userId matches the user who is allowed to upload videos.
+
+    const response = await youtube.videos.insert({
+      part: 'snippet',
+      requestBody: {
+        snippet: {
+          title: videoTitle,
+          description: videoDescription,
+        },
+      },
+      media: {
+        body: fs.createReadStream(path), // Use the 'path' variable here
+      },
+    });
+
+    const videoId = response.data.id;
+    res.json({ success: true, videoId });
+  } catch (error) {
+    console.error('Error uploading video to YouTube:', error);
+    res.status(500).json({ success: false, error: 'Error uploading video to YouTube' });
+  }
+});
+
 
 async function sendToOpenAI(textData, vibe) {
   const configuration = new Configuration({
