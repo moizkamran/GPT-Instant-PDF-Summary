@@ -1,12 +1,16 @@
-import express from 'express';
-import fs from 'fs';
-import multer from 'multer';
-import { PDFExtract } from 'pdf.js-extract';
-import { Configuration, OpenAIApi } from 'openai';
-import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
-import cors from "cors";
-
+const express = require('express');
+const multer = require('multer');
+const { PDFExtract } = require('pdf.js-extract');
+const { Configuration, OpenAIApi } = require('openai');
+const { google } = require('googleapis');
+const admin = require('firebase-admin');
+const { OAuth2Client } = require('google-auth-library');
+const cors = require("cors");
+var serviceAccount = require("./serviceAccountKey.json");
+const fs = require('fs');
+const readline = require('readline');
+const assert = require('assert')
+const OAuth2 = google.auth.OAuth2;
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
@@ -24,49 +28,176 @@ app.use((req, res, next) => {
   next();
 });
 
-const youtube = google.youtube({
-  version: 'v3',
-  auth: 'Bearer AIzaSyDwFPb9MMC8NIxM4CYQzWe_Xr_oelpc2Pc', // Replace with your API key
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
-const CLIENT_ID = 'AIzaSyCWswjh801ZPdVJIBSrc2iTct4ZGeAHy8A'; // Replace with your Firebase client ID
+// If modifying these scopes, delete your previously saved credentials in client_oauth_token.json
+const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
+
+// Set the redirect URL for the OAuth callback
+const redirectUrl = 'http://localhost:3000/oauth2callback';
+
+app.get('/', (req, res) => {
+  // Display the main page with an "Authorize" link
+  res.send(`<a href="${getAuthUrl()}">Authorize with YouTube</a>`);
+});
+
+app.get('/oauth2callback', async (req, res) => {
+  const code = req.query.code;
+  if (code) {
+    // Handle the OAuth callback
+    try {
+      const content = fs.readFileSync('./client_secret.json');
+      const credentials = JSON.parse(content);
+      const auth = authorize(credentials);
+      await getAccessToken(auth, code);
+      res.send('Authentication successful! You can now close this window.');
+    } catch (error) {
+      console.error('Error handling OAuth callback:', error);
+      res.status(500).send('Error handling OAuth callback');
+    }
+  } else {
+    res.status(400).send('Bad Request: OAuth code missing in query parameters');
+  }
+});
 
 app.post('/uploadToYouTube', upload.single('videoFile'), async (req, res) => {
   const { videoTitle, videoDescription } = req.body;
   const { path } = req.file; // The path to the temporary uploaded file
 
   try {
-    // Verify the user's access token using the OAuth2Client
-    const authClient = new OAuth2Client(CLIENT_ID);
-    const token = req.header('Authorization').split(' ')[1];
-    const ticket = await authClient.verifyIdToken({
-      idToken: token,
-    });
-    const userId = ticket.getPayload().sub;
-    // If required, you can check if the userId matches the user who is allowed to upload videos.
+    // Load client secrets from a local file.
+    const content = fs.readFileSync('./client_secret.json');
+    const credentials = JSON.parse(content);
 
-    const response = await youtube.videos.insert({
-      part: 'snippet',
-      requestBody: {
-        snippet: {
-          title: videoTitle,
-          description: videoDescription,
-        },
-      },
-      media: {
-        body: fs.createReadStream(path), // Use the 'path' variable here
-      },
-    });
+    // Authorize a client with the loaded credentials
+    const auth = authorize(credentials);
 
-    const videoId = response.data.id;
-    res.json({ success: true, videoId });
+    // Upload the video to YouTube
+    const tags = ['tag1', 'tag2', 'tag3']; // Replace with the actual tags you want to use
+    await uploadVideo(auth, videoTitle, videoDescription, tags, path);
+
+    res.json({ success: true, message: 'Video upload Successfull', videoId });
   } catch (error) {
     console.error('Error uploading video to YouTube:', error);
     res.status(500).json({ success: false, error: 'Error uploading video to YouTube' });
   }
 });
 
+/**
+ * Create an OAuth2 client with the given credentials.
+ *
+ * @param {Object} credentials The authorization client credentials.
+ * @returns {google.auth.OAuth2} The authorized OAuth2 client.
+ */
+function authorize(credentials) {
+  const clientSecret = credentials.web.client_secret;
+  const clientId = credentials.web.client_id;
+  const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUrl);
 
+  // Check if we have previously stored a token.
+  try {
+    const token = fs.readFileSync('./client_oauth_token.json');
+    oauth2Client.setCredentials(JSON.parse(token));
+    return oauth2Client;
+  } catch (err) {
+    getAccessToken(oauth2Client);
+    return oauth2Client;
+  }
+}
+
+function getAuthUrl() {
+  const credentials = JSON.parse(fs.readFileSync('./client_secret.json'));
+  const clientSecret = credentials.web.client_secret;
+  const clientId = credentials.web.client_id;
+  const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUrl);
+
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES,
+  });
+
+  return authUrl;
+}
+
+/**
+ * Get and store access token and refresh token after exchanging the authorization code.
+ *
+ * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
+ */
+async function getAccessToken(oauth2Client) {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES,
+  });
+  console.log('Authorize this app by visiting this url: ', authUrl);
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  rl.question('Enter the code from that page here: ', async function(code) {
+    rl.close();
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+    storeToken(tokens);
+  });
+}
+
+/**
+ * Store token to disk to be used in later program executions.
+ *
+ * @param {Object} token The token to store to disk.
+ */
+function storeToken(token) {
+  fs.writeFile('./client_oauth_token.json', JSON.stringify(token), (err) => {
+    if (err) throw err;
+    console.log('Token stored to client_oauth_token.json');
+  });
+}
+
+/**
+ * Upload the video file to YouTube.
+ *
+ * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+ * @param {string} title The title of the video.
+ * @param {string} description The description of the video.
+ * @param {Array} tags An array of tags for the video.
+ * @param {string} path The path to the temporary uploaded video file.
+ */
+function uploadVideo(auth, title, description, tags, path) {
+  const service = google.youtube('v3');
+
+  service.videos.insert({
+    auth: auth,
+    part: 'snippet,status',
+    requestBody: {
+      snippet: {
+        title,
+        description,
+        tags,
+        categoryId: 27, // Replace with the desired category ID
+        defaultLanguage: 'en',
+        defaultAudioLanguage: 'en',
+      },
+      status: {
+        privacyStatus: 'private', // Change the privacy status as needed
+      },
+    },
+    media: {
+      body: fs.createReadStream(path),
+    },
+  }, function(err, response) {
+    if (err) {
+      console.log('The API returned an error: ' + err);
+      throw err;
+    }
+    console.log('Video uploaded. Video ID:', response.data.id);
+    resolve(response.data.id);
+  });
+}
+
+// -----------------------------------------------------------------------
 async function sendToOpenAI(textData, vibe) {
   const configuration = new Configuration({
     apiKey: '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',

@@ -1,5 +1,5 @@
 import CustomHeader from "./CustomHeader";
-import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, Input, LoadingOverlay, MultiSelect, Select, Text, TextInput, Textarea, Title, Tooltip, TypographyStylesProvider } from "@mantine/core";
+import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, Input, LoadingOverlay, MultiSelect, Select, Text, TextInput, Textarea, Title, Tooltip, TypographyStylesProvider, UnstyledButton } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -289,37 +289,74 @@ const HomePage = () => {
   const [tags, setTags] = useState([]);
   const [videoTitle, setVideoTitle] = useState("");
   const [videoDescription, setVideoDescription] = useState("");
+  const [videoId, setVideoId] = useState("");
+  const [isLink, setIsLink] = useState(false);
+  const [videoLink, setVideoLink] = useState("");
+  const [showVideo, setShowVideo] = useState(false);
 
-  const handleYTUpload = async () => {
+  console.log("🚀 Uploaded id: ", videoId);
+
+  const handleYTUpload = async (event) => {
     event.preventDefault();
     try {
       // Get the user's access token from Firebase Auth
-      const user = auth.currentUser;
+      const user = auth.currentUser; // Replace this with your Firebase setup
       if (!user) {
         console.log("User not logged in.");
         return;
       }
-  
+
       const accessToken = await user.getIdToken();
-  
+      console.log(accessToken);
+
       const formData = new FormData();
       formData.append("videoTitle", videoTitle);
       formData.append("videoDescription", videoDescription);
       formData.append("videoFile", file);
-  
-      const response = await axios.post("http://localhost:3000/uploadToYouTube", formData, {
+
+      const response = await axios.post("http://localhost:3000/uploadToYouTube?access_token=" + accessToken, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${accessToken}`, // Pass the access token in the Authorization header
         },
       });
-      console.log(response.data.summary);
+
+      console.log("Video ID:", response);
+      setVideoId(response.data.videoId); // Store the video ID in state
+
     } catch (error) {
       console.log("Error uploading to YouTube:", error);
     }
   };
-  
-  
+
+  const [errorLinking, setErrorLinking] = useState(false);
+
+  const handleVideoLink = (event) => {
+    event.preventDefault();
+    setShowVideo(true);
+  };  
+
+  const parseVideoId = (url) => {
+    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/g;
+    const match = regex.exec(url);
+    if (match && match[1]) {
+      setErrorLinking(false);
+      return match[1];
+    } else {
+      setErrorLinking(true);
+      console.log("Invalid YouTube video URL");
+    }
+  };
+
+  // const parsedVideoLink = parseVideoId(videoLink);
+  const [parsedVideoLink, setParsedVideoLink] = useState("");
+
+  useEffect(() => {
+    if (videoLink) {
+      setParsedVideoLink(parseVideoId(videoLink));
+    }
+  }, [handleVideoLink]);
+
+    
 
   return (
     <>
@@ -362,6 +399,7 @@ const HomePage = () => {
       </div>
     </Group>
     </Dropzone.FullScreen>
+
     <div>
       <CustomHeader />
       <Center>
@@ -376,12 +414,17 @@ const HomePage = () => {
           </Flex>
           <Center mt={50}>
             <Flex gap={30} direction={"column"}> 
-            <Flex gap={10} direction={"column"}>
+
+            {/* Upload Video */}
+            {!isLink ? (<Flex gap={10} direction={"column"}>
               <Flex gap={20} align={'center'}>
               <Title ml={12} fz={22}>
                 {" "}
-                1: Select video{" "}
+                1: Upload video{" "}
               </Title>
+              <Badge color="blue" variant="light" sx={{justifyContent:'flex-end', width:'max-content', cursor:'pointer'}} component={UnstyledButton} onClick={() => setIsLink(true)}>
+                Link Instead
+              </Badge>
             {isUploaded ? (
               <Badge color={wordCount <= wordLimit ? "green" : "red"} variant="light">
                 {wordCount}/{wordLimit} words
@@ -474,7 +517,63 @@ const HomePage = () => {
                         />
                       </Flex>
              </>)}
-            </Flex>
+            </Flex>) : ''}
+            { isLink ? (<Flex gap={10} direction={"column"}>
+              <Flex gap={20} align={'center'}>
+              <Title ml={12} fz={22}>
+                {" "}
+                OR: Link video{" "}
+              </Title>
+              <Badge color="blue" variant="light" sx={{justifyContent:'flex-end', width:'max-content', cursor:'pointer'}} component={UnstyledButton} onClick={() => setIsLink(false)}>
+                Upload Instead
+              </Badge>
+              </Flex>
+             
+              <form
+                onSubmit={handleVideoLink}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                style={{
+                  border: "2px dashed black",
+                  borderRadius: "10px",
+                  width: "600px",
+                  height: "45px",
+                  display: "flex",
+                  padding: "10px 20px 10px 20px",
+                  alignContent: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  justifyItems: "center",
+                }}
+              >
+         
+                    <TextInput placeholder="Video URL"
+                    onChange={(event) => setVideoLink(event.currentTarget.value)}
+                    value={videoLink}
+                    w={'80%'}
+                    variant="unstyled"
+                    />
+                    <div style={{flex: 1}}></div>
+
+                    <Button type="submit" loading={isLoading} disabled={isLoading} variant={showVideo ? "filled" : "outline"} color="dark">
+                      {!showVideo ? "🔗 Link" : "⛓️ Re-link"}
+                    </Button>
+              </form>
+              {showVideo && !errorLinking ? (
+                          <div>
+                            {/* You can embed the YouTube video player here */}
+                            <iframe
+                              width="100%"
+                              height="315"
+                              src={`https://www.youtube.com/embed/${parsedVideoLink}`}
+                              title="YouTube Video"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            ></iframe>
+                          </div>
+                        ) :''} 
+            </Flex>) :''}
            {isUploaded ? ( <Flex gap={10} direction={"column"}>
               <Title ml={12} fz={22}>
                 {" "}
