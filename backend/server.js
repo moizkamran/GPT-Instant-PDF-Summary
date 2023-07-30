@@ -209,17 +209,22 @@ async function sendToOpenAI(textData, vibe) {
     const response = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [
+        { role: 'system', content: 'You will be provided with a pdf research paper, and your task is to make a video script of the paper as follows:\n\n-Title of the paper (in a heading) max 42 chars \n-Script Content (context of the paper min of 4 headings)\n-A question like "so what does this all mean?" then the answer. Output the result in html tags only <p> <h2> and <li> and <br>' },
         {
           role: 'user',
-          content: 'Summarize the text in html text format only in  <h1> <h2> <h3> and  <p> and <li> tags dont include any thing else MAXIMUM 400 words REMOVE any content which would not be relavent in a summary. DO NOT JUST OUTPUT THE SAME PDF HAVE MAXIMUM OF 3 HEADINGS !!!Summarize the text in the style of:' + vibe + 'heres the text:' + textData,
+          content:'\n\ vibe: ' + vibe + '\n\ PDF:  '+ textData,
         },
       ],
-      max_tokens: 600,
-      temperature: 0.9,
-      n: 1,
+      temperature: 0,
+      max_tokens: 1024,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
     });
-    // console.log('OpenAI API Response:', response.messages[0].content);
-    return response.data.choices[0].message.content;
+
+    const summary = response.data.choices[0].message.content;
+    console.log('Generated Summary:', summary);
+    return summary;
   } catch (error) {
     console.error('OpenAI API Error:', error.response.data);
     throw error;
@@ -300,6 +305,10 @@ app.post('/improve', async (req, res) => {
     console.error('Error improving summary with OpenAI:', error);
     res.status(500).json({ error: 'Error improving summary with OpenAI' });
   }
+});
+
+app.get('/statusHealth', (req, res) => {
+  res.json({ status: 'healthy' });
 });
 
 app.listen(3000, () => {

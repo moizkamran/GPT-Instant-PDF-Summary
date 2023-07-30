@@ -3,6 +3,7 @@ import { ActionIcon, Badge, Button, Center, FileButton, Flex, Group, Input, Load
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
+  addDoc,
   collection,
   doc,
   getDoc,
@@ -19,6 +20,7 @@ import { Dropzone } from '@mantine/dropzone';
 import html2pdf from "html2pdf.js";
 import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconWritingSign, IconX } from "@tabler/icons-react";
 import { getAuth } from "firebase/auth";
+import MyPublications from "./MyPublications";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -33,6 +35,18 @@ const HomePage = () => {
   const [improvePrompt, setImprovePrompt] = useState("");
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [userSummaryCount, setUserSummaryCount] = useState(0);
+  const [pageHeading, setPageHeading] = useState("Research Access");
+  const [tags, setTags] = useState([]);
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoDescription, setVideoDescription] = useState("");
+  const [videoId, setVideoId] = useState("");
+  const [isLink, setIsLink] = useState(false);
+  const [videoLink, setVideoLink] = useState("");
+  const [showVideo, setShowVideo] = useState(false);
+  const [active, setActive] = useState(false);  
+  const [errorLinking, setErrorLinking] = useState(false);
+  const [parsedVideoLink, setParsedVideoLink] = useState("");
+
 
   // Limits
   const summaryLimit = 100;
@@ -62,9 +76,8 @@ const HomePage = () => {
     if (user) {
       setIsUserLoggedIn(true);
     }
-  }, []);
+  }, [])
 
-  const [active, setActive] = useState(false);
   const wordCountCalc = (str) => {
     return str.split(" ").length;
   };
@@ -113,9 +126,11 @@ const HomePage = () => {
 
   useEffect(() => {
     if (wordCount > wordLimit) {
-      alert("The text is too long. Please upload a shorter PDF");
+      const cleanedText = text.trim().replace(/\s+/g, ' ').substring(0, wordLimit);
+      setText(cleanedText);
     }
   }, [text]);
+
 
   const summarizeText = async () => {
     try {
@@ -127,6 +142,17 @@ const HomePage = () => {
       setSummary("Failed to summarize the text");
     }
   };
+
+  // from the summary text get the first heading <h1> and set it as the page heading
+  useEffect(() => {
+    if (summary) {
+      const heading = summary.match(/<h1>(.*?)<\/h1>/);
+      if (heading) {
+        setPageHeading(heading[1]);
+      }
+    }
+  }, [summary]);
+
 
   const checkWordCountHistory = async () => {
     try {
@@ -286,13 +312,7 @@ const HomePage = () => {
     setImprovePrompt("");
   };
 
-  const [tags, setTags] = useState([]);
-  const [videoTitle, setVideoTitle] = useState("");
-  const [videoDescription, setVideoDescription] = useState("");
-  const [videoId, setVideoId] = useState("");
-  const [isLink, setIsLink] = useState(false);
-  const [videoLink, setVideoLink] = useState("");
-  const [showVideo, setShowVideo] = useState(false);
+
 
   console.log("🚀 Uploaded id: ", videoId);
 
@@ -327,9 +347,6 @@ const HomePage = () => {
       console.log("Error uploading to YouTube:", error);
     }
   };
-
-  const [errorLinking, setErrorLinking] = useState(false);
-
   const handleVideoLink = (event) => {
     event.preventDefault();
     setShowVideo(true);
@@ -347,14 +364,71 @@ const HomePage = () => {
     }
   };
 
-  // const parsedVideoLink = parseVideoId(videoLink);
-  const [parsedVideoLink, setParsedVideoLink] = useState("");
-
   useEffect(() => {
     if (videoLink) {
       setParsedVideoLink(parseVideoId(videoLink));
+      setVideoId(parseVideoId(videoLink));
     }
   }, [handleVideoLink]);
+
+  
+  const publishPage = async () => {
+    try {
+      // Check if all required fields are filled
+      if (!pageHeading || !summary || !videoId || !userUid || !user?.displayName || !user?.email || !user?.photoURL, !videoTitle, !videoDescription, !tags) {
+        
+        console.log("Please fill all required fields.");
+      console.log("pageHeading:", pageHeading);
+      console.log("summary:", summary);
+      console.log("videoId:", videoId);
+      console.log("userUid:", userUid);
+      console.log("user.name:", user?.displayName);
+      console.log("user.email:", user?.email);
+      console.log("user.profilePicture:", user?.photoURL);
+        console.log("Please fill all required fields.");
+        return;
+      }
+  
+      const db = getFirestore();
+  
+      // Reference the 'Pages' collection
+      const pagesCollectionRef = collection(db, "Pages");
+  
+      // Prepare the data to be saved
+      const pageData = {
+        heading: pageHeading,
+        summary: summary,
+        videoId: videoId,
+        videoTitle: videoTitle,
+        videoDescription: videoDescription,
+        tags: tags,
+        userId: userUid,
+        name: user.displayName,
+        email: user.email,
+        profilePicture: user.photoURL,
+        timestamp: new Date().toISOString(),
+      };
+  
+      // Add a new document with an automatically generated ID to the 'Pages' collection
+      await addDoc(pagesCollectionRef, pageData);
+  
+      
+        // Add a new document with an automatically generated ID to the 'Pages' collection
+      const newPageRef = await addDoc(pagesCollectionRef, pageData);
+      
+      const pageId = newPageRef.id;
+      window.open(`/pages/${pageId}`, "_blank");
+
+      console.log("Page published successfully!");
+
+  
+    } catch (error) {
+      console.log("Error publishing the page:", error);
+      // Handle the error accordingly, e.g., show an error message to the user.
+    }
+  };
+  
+    
 
     
 
@@ -411,6 +485,7 @@ const HomePage = () => {
             {isUserLoggedIn && userSummaryCount ? (<Badge color="grape" size="xl" mt={20}>
               {userSummaryCount}/{summaryLimit} summaries
             </Badge>):''}
+            <MyPublications />
           </Flex>
           <Center mt={50}>
             <Flex gap={30} direction={"column"}> 
@@ -574,6 +649,78 @@ const HomePage = () => {
                           </div>
                         ) :''} 
             </Flex>) :''}
+            {showVideo && !errorLinking ?(<Flex gap={10} direction={"column"}>
+              <Flex gap={20} align={'center'}>
+              <Title ml={12} fz={22}>
+                {" "}
+                2: Select your PDF File{" "}
+              </Title>
+            {isUploaded ? (
+              <Badge color={wordCount <= wordLimit ? "green" : "red"} variant="light">
+                {wordCount}/{wordLimit} words
+              </Badge>
+            ) : (
+              ""
+            )}
+              </Flex>
+             
+              <form
+                onSubmit={handleUpload}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                style={{
+                  border: "2px dashed black",
+                  borderRadius: "10px",
+                  width: "600px",
+                  height: "45px",
+                  display: "flex",
+                  padding: "10px 20px 10px 20px",
+                  alignContent: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  justifyItems: "center",
+                }}
+              >
+         
+                    <Text>
+                      {fileName ? (fileName.length > 50 ? fileName.substring(0, 50) + "..." : fileName) : "Drag or Upload the PDF to be summarized"}
+                    </Text>
+                    <div style={{flex: 1}}></div>
+
+                    {(file === null || isUploaded) && (<Flex align={'center'} gap={10}>
+                      {isUploaded ? (
+                        <Tooltip label="Reset" position="left">
+                      <ActionIcon color="red" size="lg" radius="xl" onClick={handleReset}>
+                        <IconReload size="1.625rem" />
+                      </ActionIcon>
+                      </Tooltip>):''}
+                      <FileButton onChange={(selectedFile) => {
+                        setFile(selectedFile);
+                        setIsUploaded(false);
+                      }} accept="application/pdf" bg="black">
+                        {(props) => (
+                          <Button {...props}>
+                            {isUploaded ? "Reselect PDF" : "Select PDF"}
+                          </Button>
+                        )}
+                      </FileButton></Flex>
+                    )}
+
+                    {fileName && !isUploaded && (
+                      <Button
+                        type="submit"
+                        loading={isLoading}
+                        disabled={isLoading}
+                        variant="outline"
+                        color="dark"
+                      >
+                        Upload
+                      </Button>
+                    )}
+
+              </form>
+             
+            </Flex>) :''}
            {isUploaded ? ( <Flex gap={10} direction={"column"}>
               <Title ml={12} fz={22}>
                 {" "}
@@ -596,6 +743,7 @@ const HomePage = () => {
 
                       value={vibe}
                       onChange={(value) => setVibe(value)}
+                      variant="unstyled"
                       styles={{
                         root: {
                           border: "none !important",
@@ -650,6 +798,7 @@ const HomePage = () => {
               >
   
                  <Textarea
+                 variant="unstyled"
                     value={improvePrompt}
                     onChange={(event) => setImprovePrompt(event.currentTarget.value)}
                     placeholder="Enter in words or phrases to improve the summary"
@@ -700,7 +849,8 @@ const HomePage = () => {
                 </Flex>
             </Flex>) :''}
 
-           {summary ? (<Button disabled={isLoading} onClick={downloadSummary} color="dark" leftIcon={<IconWritingSign/>}>Publish Page</Button>) : ''}
+           {summary ? (<Button disabled={isLoading} onClick={publishPage} color="dark" leftIcon={<IconWritingSign/>}>Publish Page</Button>) : ''}
+           {summary ? (<Button disabled={isLoading} onClick={downloadSummary} color="dark" leftIcon={<IconDownload/>} variant="outline">Download Page</Button>) : ''}
 
 
             </Flex>
