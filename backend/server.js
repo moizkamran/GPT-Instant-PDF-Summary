@@ -71,15 +71,16 @@ app.post('/uploadToYouTube', upload.single('videoFile'), async (req, res) => {
     // Load client secrets from a local file.
     const content = fs.readFileSync('./client_secret.json');
     const credentials = JSON.parse(content);
+    console.log(credentials);
 
     // Authorize a client with the loaded credentials
     const auth = authorize(credentials);
 
     // Upload the video to YouTube
     const tags = ['tag1', 'tag2', 'tag3']; // Replace with the actual tags you want to use
-    await uploadVideo(auth, videoTitle, videoDescription, tags, path);
+    const videoId = await uploadVideo(auth, videoTitle, videoDescription, tags, path);
 
-    res.json({ success: true, message: 'Video upload Successfull', videoId });
+    res.json({ success: true, message: 'Video upload initiated', videoId });
   } catch (error) {
     console.error('Error uploading video to YouTube:', error);
     res.status(500).json({ success: false, error: 'Error uploading video to YouTube' });
@@ -167,34 +168,37 @@ function storeToken(token) {
  * @param {string} path The path to the temporary uploaded video file.
  */
 function uploadVideo(auth, title, description, tags, path) {
-  const service = google.youtube('v3');
+  return new Promise((resolve, reject) => {
+    const service = google.youtube('v3');
 
-  service.videos.insert({
-    auth: auth,
-    part: 'snippet,status',
-    requestBody: {
-      snippet: {
-        title,
-        description,
-        tags,
-        categoryId: 27, // Replace with the desired category ID
-        defaultLanguage: 'en',
-        defaultAudioLanguage: 'en',
+    service.videos.insert({
+      auth: auth,
+      part: 'snippet,status',
+      requestBody: {
+        snippet: {
+          title,
+          description,
+          tags,
+          categoryId: 24,
+          defaultLanguage: 'en',
+          defaultAudioLanguage: 'en',
+        },
+        status: {
+          privacyStatus: 'private', // Change the privacy status as needed
+        },
       },
-      status: {
-        privacyStatus: 'private', // Change the privacy status as needed
+      media: {
+        body: fs.createReadStream(path),
       },
-    },
-    media: {
-      body: fs.createReadStream(path),
-    },
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      throw err;
-    }
-    console.log('Video uploaded. Video ID:', response.data.id);
-    resolve(response.data.id);
+    }, function(err, response) {
+      if (err) {
+        console.log('The API returned an error: ' + err);
+        reject(err);
+        return;
+      }
+      console.log('Video uploaded. Video ID:', response.data.id);
+      resolve(response.data.id);
+    });
   });
 }
 

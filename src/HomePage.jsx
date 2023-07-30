@@ -26,6 +26,8 @@ import newRequest from "./utils/newRequest";
 const HomePage = () => {
   const [file, setFile] = useState(null);
   const fileName = file ? file.name : "";
+  const [video, setVideo] = useState(null);
+  const videoName = video ? video.name : "";
   const navigate = useNavigate();
   const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
@@ -334,7 +336,7 @@ const HomePage = () => {
       const formData = new FormData();
       formData.append("videoTitle", videoTitle);
       formData.append("videoDescription", videoDescription);
-      formData.append("videoFile", file);
+      formData.append("videoFile", video);
 
       const response = await newRequest.post("/uploadToYouTube?access_token=" + accessToken, formData, {
         headers: {
@@ -507,8 +509,6 @@ const HomePage = () => {
              
               <form
                 onSubmit={handleYTUpload}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
                 style={{
                   border: "2px dashed black",
                   borderRadius: "10px",
@@ -524,19 +524,19 @@ const HomePage = () => {
               >
          
                     <Text>
-                      {fileName ? (fileName.length > 50 ? fileName.substring(0, 50) + "..." : fileName) : "Drag or Upload the Video to be uploaded to YouTube"}
+                      {videoName ? (videoName.length > 50 ? videoName.substring(0, 50) + "..." : videoName) : "Drag or Upload the Video to be uploaded to YouTube"}
                     </Text>
                     <div style={{flex: 1}}></div>
 
-                    {(file === null || isUploaded) && (<Flex align={'center'} gap={10}>
-                      {isUploaded ? (
+                    {(video === null || isUploaded) && (<Flex align={'center'} gap={10}>
+                      {videoId ? (
                         <Tooltip label="Reset" position="left">
                       <ActionIcon color="red" size="lg" radius="xl" onClick={handleReset}>
                         <IconReload size="1.625rem" />
                       </ActionIcon>
                       </Tooltip>):''}
                       <FileButton onChange={(selectedFile) => {
-                        setFile(selectedFile);
+                        setVideo(selectedFile);
                         setIsUploaded(false);
                       }} accept="video/mp4" bg="black">
                         {(props) => (
@@ -547,7 +547,7 @@ const HomePage = () => {
                       </FileButton></Flex>
                     )}
 
-                    {fileName && !isUploaded && (<>
+                    {videoName && videoId === null ? (<>
                       <Button
                         type="submit"
                         loading={isLoading}
@@ -558,14 +558,14 @@ const HomePage = () => {
                         Upload
                       </Button>
                       </>
-                    )}
+                    ): ''}
 
               </form>
-              {fileName && !isUploaded && (<>
+              {videoName && !isUploaded && (<>
               <Flex direction={'column'} w={'100%'} gap={10}>
                         <TextInput placeholder="Video Title" 
                         onChange={(event) => setVideoTitle(event.currentTarget.value)}
-                        defaultValue={fileName}
+                        defaultValue={videoName}
                         label="Video Title"
                         />
                         <TextInput placeholder="Video Description" 
@@ -645,7 +645,7 @@ const HomePage = () => {
                           </div>
                         ) :''} 
             </Flex>) :''}
-            {showVideo && !errorLinking ?(<Flex gap={10} direction={"column"}>
+            {showVideo && !errorLinking || videoId ?(<Flex gap={10} direction={"column"}>
               <Flex gap={20} align={'center'}>
               <Title ml={12} fz={22}>
                 {" "}
