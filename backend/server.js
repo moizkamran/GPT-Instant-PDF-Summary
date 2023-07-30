@@ -14,17 +14,18 @@ const OAuth2 = google.auth.OAuth2;
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
-const allowedOrigins = ["http://localhost:5173", "https://rika-1.web.app/", "101.53.233.193"];
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+const allowedOrigins = ["http://localhost:5173", "https://rika-1.web.app", "101.53.233.193"];
 
 app.use(express.json());
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Credentials', true);
   next();
 });
 
@@ -311,6 +312,13 @@ app.get('/statusHealth', (req, res) => {
   res.json({ status: 'healthy' });
 });
 
-app.listen(3000, () => {
-  console.log('🤖 api listening on port 3000');
+app.listen(process.env.PORT || 8080, () => {
+  console.log('🤖 api listening on port 8080');
+});
+
+app.use((err, req, res, next) => {
+  const errorStatus = err.status || 500;
+  const errorMessage = err.message || "Something went wrong!";
+
+  return res.status(errorStatus).send(errorMessage);
 });

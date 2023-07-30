@@ -55,6 +55,8 @@ const ResearchAccessPage = () => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
     });
     const [opened, { open, close }] = useDisclosure(false);
 

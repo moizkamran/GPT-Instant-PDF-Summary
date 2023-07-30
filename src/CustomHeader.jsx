@@ -25,7 +25,7 @@ import { useDisclosure } from "@mantine/hooks";
 import "react-toastify/dist/ReactToastify.css";
 import React, { useEffect, useState } from "react";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { UserAuth } from "./Context/AuthContext";
 import { IconBrandGoogle } from "@tabler/icons-react";
@@ -188,7 +188,7 @@ export default function CustomHeader() {
     <Box pb={120}>
       <Header height={60} px="md">
         <Group position="apart" sx={{ height: "100%" }}>
-          <Title>VR Tools</Title>
+          <Title component={Link} to="/">VR Tools</Title>
           <Group
             sx={{ height: "100%" }}
             spacing={0}

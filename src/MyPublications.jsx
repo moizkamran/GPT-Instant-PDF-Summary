@@ -82,8 +82,6 @@ const MyPublications = () => {
       slidesToScroll={3}
     >
         {publications.map((publication, index) => {
-          const gradient = generate(); // Generate a unique gradient for each publication box
-          const textColor = getTextColor(gradient);
 
           const parsedDate = new Date(publication.timestamp);
             const formattedDate = parsedDate.toLocaleDateString('en-US', {
@@ -107,18 +105,18 @@ const MyPublications = () => {
               component={Link}
               to={`/pages/${publication.id}`}
               ml={10}
-              bg={gradient}
+              bg={'black'}
               p={20}
               sx={{ borderRadius: 30, cursor: 'pointer', textDecoration: 'none' }}
               mt={20}
             >
-              <Text fz={20} fw={700} color={textColor}>
+              <Text fz={20} fw={700} color={'white'}>
                 {truncateText(publication.heading, 30)}
               </Text>
-              <Text fz={15} fw={400} color={textColor}>
+              <Text fz={15} fw={400} color={'white'}>
                 {formattedDate} {/* Assuming `timestamp` is the date field */}
               </Text>
-              <Text c={textColor} fz={11} fw={400} mt={10}>
+              <Text c={'white'} fz={11} fw={400} mt={10}>
                 {truncateText(summaryWithoutHtml, 90)}
               </Text>
             </Flex>

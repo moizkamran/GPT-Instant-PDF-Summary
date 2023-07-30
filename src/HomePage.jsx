@@ -21,6 +21,7 @@ import html2pdf from "html2pdf.js";
 import { IconBook2, IconDownload, IconPdf, IconReload, IconUpload, IconWritingSign, IconX } from "@tabler/icons-react";
 import { getAuth } from "firebase/auth";
 import MyPublications from "./MyPublications";
+import newRequest from "./utils/newRequest";
 
 const HomePage = () => {
   const [file, setFile] = useState(null);
@@ -103,8 +104,8 @@ const HomePage = () => {
     formData.append("pdf", file);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/upload",
+      const response = await newRequest.post(
+        "/upload",
         formData,
         {
           headers: {
@@ -134,7 +135,7 @@ const HomePage = () => {
 
   const summarizeText = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/summary", { text, vibe });
+      const response = await newRequest.post("/summary", { text, vibe });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
@@ -149,6 +150,7 @@ const HomePage = () => {
       const heading = summary.match(/<h1>(.*?)<\/h1>/);
       if (heading) {
         setPageHeading(heading[1]);
+        console.log(heading);
       }
     }
   }, [summary]);
@@ -235,7 +237,7 @@ const HomePage = () => {
 
   const improveText = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/improve", { summary: summary, improvement: improvePrompt });
+      const response = await newRequest.post("/improve", { summary: summary, improvement: improvePrompt });
       setSummary(response.data.summary);
       console.log(response.data.summary);
     } catch (error) {
@@ -334,7 +336,7 @@ const HomePage = () => {
       formData.append("videoDescription", videoDescription);
       formData.append("videoFile", file);
 
-      const response = await axios.post("http://localhost:3000/uploadToYouTube?access_token=" + accessToken, formData, {
+      const response = await newRequest.post("/uploadToYouTube?access_token=" + accessToken, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -411,7 +413,7 @@ const HomePage = () => {
       const newPageRef = await addDoc(pagesCollectionRef, pageData);
   
       const pageId = newPageRef.id;
-      window.open(`/pages/${pageId}`, "_blank");
+      navigate(`/pages/${pageId}`, "_blank");
   
       console.log("Page published successfully!");
   
