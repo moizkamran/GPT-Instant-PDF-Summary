@@ -324,6 +324,7 @@ const HomePage = () => {
     event.preventDefault();
     try {
       // Get the user's access token from Firebase Auth
+      setIsLoading(true);
       const user = auth.currentUser; // Replace this with your Firebase setup
       if (!user) {
         console.log("User not logged in.");
@@ -345,10 +346,13 @@ const HomePage = () => {
       });
 
       console.log("Video ID:", response);
+      setIsLoading(false);
+      setShowVideo(true);
       setVideoId(response.data.videoId); // Store the video ID in state
 
     } catch (error) {
       console.log("Error uploading to YouTube:", error);
+      setIsLoading(false);
     }
   };
   const handleVideoLink = (event) => {
@@ -434,10 +438,10 @@ const HomePage = () => {
     <>
     <Dropzone.FullScreen
     active={true}
-    accept={['video/mp4']}
+    accept={['video/mp4, video/mov, video/avi, video/mkv, video/flv, video/wmv, video/3gp, video/ogg, video/webm, video/m4v']}
     onDrop={(files) => {
       console.log(files);
-      setFile(files[0]);
+      setVideo(files[0]);
       setActive(false);
       setIsUploaded(false);
     }}
@@ -538,7 +542,7 @@ const HomePage = () => {
                       <FileButton onChange={(selectedFile) => {
                         setVideo(selectedFile);
                         setIsUploaded(false);
-                      }} accept="video/mp4" bg="black">
+                      }} accept="video/mp4, video/mov, video/avi, video/mkv, video/flv, video/wmv, video/3gp, video/ogg, video/webm, video/m4v" bg="black">
                         {(props) => (
                           <Button {...props}>
                             {isUploaded ? "Reselect Video" : "Select Video"}
@@ -547,7 +551,7 @@ const HomePage = () => {
                       </FileButton></Flex>
                     )}
 
-                    {videoName && videoId === null ? (<>
+                    {videoName ? (<>
                       <Button
                         type="submit"
                         loading={isLoading}
@@ -630,7 +634,8 @@ const HomePage = () => {
                       {!showVideo ? "🔗 Link" : "⛓️ Re-link"}
                     </Button>
               </form>
-              {showVideo && !errorLinking ? (
+            </Flex>) :''}
+            {showVideo && videoId ? (
                           <div>
                             {/* You can embed the YouTube video player here */}
                             <iframe
@@ -644,7 +649,6 @@ const HomePage = () => {
                             ></iframe>
                           </div>
                         ) :''} 
-            </Flex>) :''}
             {showVideo && !errorLinking || videoId ?(<Flex gap={10} direction={"column"}>
               <Flex gap={20} align={'center'}>
               <Title ml={12} fz={22}>
