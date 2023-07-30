@@ -375,7 +375,7 @@ const HomePage = () => {
   const publishPage = async () => {
     try {
       // Check if all required fields are filled
-      if (!pageHeading || !summary || !videoId || !userUid || !user?.displayName || !user?.email || !user?.photoURL || !videoTitle || !videoDescription || !tags) {
+      if (!pageHeading || !summary || !videoId || !userUid || !user?.displayName || !user?.email || !user?.photoURL) {
         console.log("Please fill all required fields.");
         console.log("pageHeading:", pageHeading);
         console.log("summary:", summary);
