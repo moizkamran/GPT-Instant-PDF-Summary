@@ -1,6 +1,8 @@
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { Flex, Text, Title } from '@mantine/core';
 import React, { useState, useEffect } from 'react';
+import { Carousel } from '@mantine/carousel';
+import { Link } from 'react-router-dom';
 
 const MyPublications = () => {
   const [publications, setPublications] = useState([]);
@@ -37,7 +39,11 @@ const MyPublications = () => {
 
       try {
         const querySnapshot = await getDocs(q);
-        const userPublications = querySnapshot.docs.map((doc) => doc.data());
+        const userPublications = querySnapshot.docs.map((doc) => {
+            // Include the document ID in the data
+            const dataWithId = { id: doc.id, ...doc.data() };
+            return dataWithId;
+          });
         setPublications(userPublications);
       } catch (error) {
         console.log('Error fetching user publications:', error);
@@ -58,6 +64,9 @@ const MyPublications = () => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
   }
 
+  const totalPublications = publications.length;
+  console.log(totalPublications);
+
   
 
 
@@ -65,7 +74,13 @@ const MyPublications = () => {
     <>
       <Flex mt={20} direction={'column'} align={'center'} justify={'center'}>
         <Title order={3}>Your Publications</Title>
-        <Flex mt={20} gap={10} sx={{overflowY: 'scroll'}}>
+       { totalPublications > 0 ? ( <Carousel
+      withIndicators
+      slideSize="100%"
+      slideGap="xl"
+      align="start"
+      slidesToScroll={3}
+    >
         {publications.map((publication, index) => {
           const gradient = generate(); // Generate a unique gradient for each publication box
           const textColor = getTextColor(gradient);
@@ -80,16 +95,21 @@ const MyPublications = () => {
             // remove all html tags from the summary
             const summaryWithoutHeading = publication.summary.replace(/<h1[^>]*>([^<]+)<\/h1>/, '');
             const summaryWithoutHtml = summaryWithoutHeading.replace(/<[^>]*>?/gm, '');
+            
 
           return (
+          
             <Flex
               key={index}
               direction={'column'}
               maw={200}
               mah={200}
+              component={Link}
+              to={`/pages/${publication.id}`}
+              ml={10}
               bg={gradient}
               p={20}
-              sx={{ borderRadius: 30, cursor: 'pointer' }}
+              sx={{ borderRadius: 30, cursor: 'pointer', textDecoration: 'none' }}
               mt={20}
             >
               <Text fz={20} fw={700} color={textColor}>
@@ -104,7 +124,7 @@ const MyPublications = () => {
             </Flex>
           );
         })}
-        </Flex>
+        </Carousel>) : <Text c="dimmed" mt={10}>🤔 You have not published anything yet.</Text>}
       </Flex>
     </>
   );

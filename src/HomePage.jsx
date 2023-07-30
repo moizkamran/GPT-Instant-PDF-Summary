@@ -375,17 +375,15 @@ const HomePage = () => {
   const publishPage = async () => {
     try {
       // Check if all required fields are filled
-      if (!pageHeading || !summary || !videoId || !userUid || !user?.displayName || !user?.email || !user?.photoURL, !videoTitle, !videoDescription, !tags) {
-        
+      if (!pageHeading || !summary || !videoId || !userUid || !user?.displayName || !user?.email || !user?.photoURL || !videoTitle || !videoDescription || !tags) {
         console.log("Please fill all required fields.");
-      console.log("pageHeading:", pageHeading);
-      console.log("summary:", summary);
-      console.log("videoId:", videoId);
-      console.log("userUid:", userUid);
-      console.log("user.name:", user?.displayName);
-      console.log("user.email:", user?.email);
-      console.log("user.profilePicture:", user?.photoURL);
-        console.log("Please fill all required fields.");
+        console.log("pageHeading:", pageHeading);
+        console.log("summary:", summary);
+        console.log("videoId:", videoId);
+        console.log("userUid:", userUid);
+        console.log("user.name:", user?.displayName);
+        console.log("user.email:", user?.email);
+        console.log("user.profilePicture:", user?.photoURL);
         return;
       }
   
@@ -410,23 +408,19 @@ const HomePage = () => {
       };
   
       // Add a new document with an automatically generated ID to the 'Pages' collection
-      await addDoc(pagesCollectionRef, pageData);
-  
-      
-        // Add a new document with an automatically generated ID to the 'Pages' collection
       const newPageRef = await addDoc(pagesCollectionRef, pageData);
-      
+  
       const pageId = newPageRef.id;
       window.open(`/pages/${pageId}`, "_blank");
-
+  
       console.log("Page published successfully!");
-
   
     } catch (error) {
       console.log("Error publishing the page:", error);
       // Handle the error accordingly, e.g., show an error message to the user.
     }
   };
+  
   
     
 
