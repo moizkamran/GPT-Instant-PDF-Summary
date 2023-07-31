@@ -1,5 +1,5 @@
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import { Button, Flex, Text, Title } from '@mantine/core';
+import { Button, Flex, LoadingOverlay, Text, Title } from '@mantine/core';
 import React, { useState, useEffect } from 'react';
 import { Carousel } from '@mantine/carousel';
 import { Link } from 'react-router-dom';
@@ -8,10 +8,12 @@ import { IconChevronCompactDown } from '@tabler/icons-react';
 const MyPublications = () => {
   const [publications, setPublications] = useState([]);
   const [userUid, setUserUid] = useState(null); // Declare userUid state variable
+  const [loading, setLoading] = useState(false);
   
 
   useEffect(() => {
     const fetchUserPublications = async () => {
+      setLoading(true);
       const userJson = localStorage.getItem('user');
       const user = JSON.parse(userJson);
       const userUid = user?.uid;
@@ -33,7 +35,9 @@ const MyPublications = () => {
             return dataWithId;
           });
         setPublications(userPublications);
+        setLoading(false);
       } catch (error) {
+        setLoading(false);
         console.log('Error fetching user publications:', error);
         // Handle the error accordingly, e.g., show an error message to the user.
       }
@@ -53,7 +57,8 @@ const MyPublications = () => {
 
   return (
     <>
-      <Flex mt={20} direction={'column'} align={'center'} justify={'center'}>
+      <Flex mt={20} direction={'column'} align={'center'} justify={'center'} pos={'relative'}>
+        <LoadingOverlay visible={loading} />
         <Title order={3}>Your Publications</Title>
         {totalPublications > 0 ? (
           <>

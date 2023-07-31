@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import CustomHeader from './CustomHeader';
 import { useParams } from 'react-router-dom';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { ActionIcon, Avatar, Button, Chip, Flex, Group, LoadingOverlay, Modal, Text, TextInput, Textarea, Title, TypographyStylesProvider } from '@mantine/core';
-import { IconChevronRight, IconEditCircle, IconFileDescription, IconFolderOpen } from '@tabler/icons-react';
+import { IconChevronRight, IconEditCircle, IconFileDescription, IconFolderOpen, IconTrash } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 
 const ResearchAccessPage = () => {
@@ -13,6 +13,7 @@ const ResearchAccessPage = () => {
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [editedHeading, setEditedHeading] = useState('');
   const [editedSummary, setEditedSummary] = useState('');
+  const [fourOfour, setFourOfour] = useState(false);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(null);
   console.log(page);
@@ -64,6 +65,7 @@ const ResearchAccessPage = () => {
           setLoading(false);
         } else {
           console.log('Page not found');
+          setFourOfour(true);
           setLoading(false);
           // You can handle the case where the page with the provided ID is not found.
         }
@@ -169,10 +171,29 @@ const ResearchAccessPage = () => {
         // Handle the error accordingly, e.g., show an error message to the user.
       }
     };
-  
 
+    const handleDelete = async () => {
+      try {
+        setLoading(true);
+        const db = getFirestore();
+        const pageRef = doc(db, 'Pages', id);
 
+        const docSnapshot = await getDoc(pageRef);
+        if (!docSnapshot.exists()) {
+          throw new Error(`Page with ID ${id} does not exist`);
+        }
 
+        await deleteDoc(pageRef);
+        console.log('Page deleted successfully');
+        setLoading(false);
+        setFourOfour(true);
+        setPage(null);
+      } catch (error) {
+        setLoading(false);
+        console.log('Error deleting page:', error);
+        // Handle the error accordingly, e.g., show an error message to the user.
+      }
+    };
 
   return (
     <>
@@ -202,7 +223,7 @@ const ResearchAccessPage = () => {
             {isAuthor && (
               <Button
                 variant="subtle"
-                color="red"
+                color="dark"
                 size="sm"
                 leftIcon={<IconEditCircle />}
                 onClick={() => {
@@ -271,9 +292,10 @@ const ResearchAccessPage = () => {
           />
         )}
         {isAuthor && (
+        <Flex align={'center'} justify={'space-between'}>
           <Button
             variant="subtle"
-            color="red"
+            color="dark"
             size="sm"
             leftIcon={<IconEditCircle />}
             onClick={() => {
@@ -285,9 +307,17 @@ const ResearchAccessPage = () => {
           >
             {isEditingSummary ? 'Save' : 'Edit'}
           </Button>
+           <Button onClick={handleDelete} loading={loading} variant="outline" color="red" size="sm" radius="xl" mt={20} leftIcon={ <IconTrash size="20px" />}>
+           Delete
+         </Button>
+        </Flex>
         )}
       </div>
     )}
+    {fourOfour ? (<Flex direction={'column'} gap={'10'} align={'center'} justify={'center'}>
+      <Title order={3}>404</Title>
+      <Text c='dimmed'>This page was recently deleted or does not exsist</Text>
+    </Flex>):''}
   </>
   );
 };

@@ -487,7 +487,7 @@ const HomePage = () => {
             {isUserLoggedIn && userSummaryCount ? (<Badge color="grape" size="xl" mt={20}>
               {userSummaryCount}/{summaryLimit} summaries
             </Badge>):''}
-            <MyPublications />
+            {isUserLoggedIn ? (<MyPublications />): ''}
           </Flex>
           <Center mt={50}>
             <Flex gap={30} direction={"column"}> 
