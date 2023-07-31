@@ -15,7 +15,7 @@ function App() {
         <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/pages/:id" element={<ResearchAccessPage />} />
-        <Route path="/publications" element={<AllPublications />} />
+        <Route path="/publications/:id?" element={<AllPublications />} />
         </Routes>
       </AuthContextProvider>
     </>

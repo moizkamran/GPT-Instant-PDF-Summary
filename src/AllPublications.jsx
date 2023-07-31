@@ -18,7 +18,7 @@ import {
   IconChevronUp,
   IconSearch,
 } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import CustomHeader from './CustomHeader';
 
 const useStyles = createStyles((theme) => ({
@@ -65,11 +65,22 @@ function Th({ children, reversed, sorted, onSort }) {
 }
 
 export function TableSort() {
+  const { id } = useParams();
+  console.log(id);
+
+  // use effect to set search the id passed in the url and set it to the search state variable
+
+
   const [publications, setPublications] = useState([]);
   const [search, setSearch] = useState('');
   const [sortedData, setSortedData] = useState([]);
   const [sortBy, setSortBy] = useState(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+
+  useEffect(() => {
+    setSearch(id ? id : '');
+  }, [id]);
 
   useEffect(() => {
     const fetchUserPublications = async () => {
@@ -106,7 +117,7 @@ export function TableSort() {
   }, [publications, sortBy, reverseSortDirection, search]);
 
   function filterData(data, search) {
-    const query = search.toLowerCase().trim();
+    const query = search?.toLowerCase().trim();
     return data.filter((item) =>
       keys(item).some((key) => {
         const value = item[key];
