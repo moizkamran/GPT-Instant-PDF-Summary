@@ -28,7 +28,7 @@ import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { UserAuth } from "./Context/AuthContext";
-import { IconBrandGoogle } from "@tabler/icons-react";
+import { IconBookFilled, IconBrandGoogle } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   link: {
@@ -298,7 +298,7 @@ export default function CustomHeader() {
           </Group>
 
           <Group className={classes.hiddenMobile}>
-            <Button color="dark" variant="subtle">Contact</Button>
+            <Button color="dark" variant="outline" leftIcon={<IconBookFilled/>} component={Link} to="/publications">Library</Button>
 
             { !isLoggedIn ? (<Flex gap={10} justify={'center'} align={'center'}>
            

@@ -7,22 +7,6 @@ import { Link } from 'react-router-dom';
 const MyPublications = () => {
   const [publications, setPublications] = useState([]);
 
-  function createHex() {
-    var hexCode1 = '';
-    var hexValues1 = '0123456789abcdef';
-
-    for (var i = 0; i < 6; i++) {
-      hexCode1 += hexValues1.charAt(Math.floor(Math.random() * hexValues1.length));
-    }
-    return hexCode1;
-  }
-
-  function generate() {
-    var deg = Math.floor(Math.random() * 360);
-    var newGradient = 'linear-gradient(' + deg + 'deg, ' + '#' + createHex() + ', ' + '#' + createHex() + ')';
-    return newGradient;
-  }
-
   useEffect(() => {
     const fetchUserPublications = async () => {
       const userJson = localStorage.getItem('user');
@@ -53,12 +37,6 @@ const MyPublications = () => {
 
     fetchUserPublications();
   }, []);
-
-  function getTextColor(gradientColor) {
-    const rgbValues = gradientColor.match(/\d+/g);
-    const brightness = (parseInt(rgbValues[0]) * 299 + parseInt(rgbValues[1]) * 587 + parseInt(rgbValues[2]) * 114) / 1000;
-    return brightness < 128 ? '#fff' : '#000';
-  }
 
   function truncateText(text, maxLength) {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
@@ -105,18 +83,18 @@ const MyPublications = () => {
               component={Link}
               to={`/pages/${publication.id}`}
               ml={10}
-              bg={'black'}
+              bg={'white'}
               p={20}
-              sx={{ borderRadius: 30, cursor: 'pointer', textDecoration: 'none' }}
+              sx={{ borderRadius: 30, cursor: 'pointer', textDecoration: 'none', border: '1px solid #e0e0e0'}}
               mt={20}
             >
-              <Text fz={20} fw={700} color={'white'}>
+              <Text fz={20} fw={700} color={'black'}>
                 {truncateText(publication.heading, 30)}
               </Text>
-              <Text fz={15} fw={400} color={'white'}>
+              <Text fz={15} fw={400} color={'black'}>
                 {formattedDate} {/* Assuming `timestamp` is the date field */}
               </Text>
-              <Text c={'white'} fz={11} fw={400} mt={10}>
+              <Text c={'black'} fz={11} fw={400} mt={10}>
                 {truncateText(summaryWithoutHtml, 90)}
               </Text>
             </Flex>

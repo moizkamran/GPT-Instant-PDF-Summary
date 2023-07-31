@@ -6,6 +6,7 @@ import GptFile from "./GptFile";
 import Register from "./Auth/Register";import './flairs.css'
 import HomePage from "./HomePage";
 import ResearchAccessPage from "./ResearchAccessPage";
+import AllPublications from "./AllPublications";
 
 function App() {
   return (
@@ -13,8 +14,8 @@ function App() {
       <AuthContextProvider>
         <Routes>
         <Route path="/" element={<HomePage />} />
-        // create a dynamic route which takes in a parameter called id
         <Route path="/pages/:id" element={<ResearchAccessPage />} />
+        <Route path="/publications" element={<AllPublications />} />
         </Routes>
       </AuthContextProvider>
     </>

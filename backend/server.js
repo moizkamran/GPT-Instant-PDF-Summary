@@ -214,7 +214,7 @@ async function sendToOpenAI(textData, vibe) {
     const response = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You will be provided with a pdf research paper, and your task is to make a video script of the paper as follows:\n\n-Title of the paper (in a heading) max 42 chars \n-Script Content (context of the paper min of 4 headings)\n-A question like "so what does this all mean?" then the answer. Output the result in html tags only <p> <h2> and <li> and <br>' },
+        { role: 'system', content: 'You will be provided with a pdf research paper, and your task is to make a video script of the paper as follows:\n\n-Title of the paper (in a heading always <h1>) max 42 chars \n-Script Content (context of the paper min of 4 headings)\n-A question like "so what does this all mean?" then the answer. Output the result in html tags only <p> <h2> and <li> and <br>' },
         {
           role: 'user',
           content:'\n\ vibe: ' + vibe + '\n\ PDF:  '+ textData,

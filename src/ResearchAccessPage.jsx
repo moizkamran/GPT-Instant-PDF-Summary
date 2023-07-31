@@ -2,15 +2,43 @@ import React, { useState, useEffect } from 'react';
 import CustomHeader from './CustomHeader';
 import { useParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { ActionIcon, Avatar, Button, Chip, Flex, Group, Modal, Text, Title, TypographyStylesProvider } from '@mantine/core';
-import { IconChevronRight, IconFileDescription, IconFolderOpen } from '@tabler/icons-react';
+import { ActionIcon, Avatar, Button, Chip, Flex, Group, Modal, Text, TextInput, Textarea, Title, TypographyStylesProvider } from '@mantine/core';
+import { IconChevronRight, IconEditCircle, IconFileDescription, IconFolderOpen } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 
 const ResearchAccessPage = () => {
   const { id } = useParams();
   console.log(id);
+  const [isEditingHeading, setIsEditingHeading] = useState(false);
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [page, setPage] = useState(null);
   console.log(page);
+
+  //create a useEffect to check if the user is the author of the page we can get the user id from the local storrage use
+  //the user id to check if the user is the author of the page if the user is the author of the page then we can show the edit button
+
+  const [isAuthor, setIsAuthor] = useState(false);
+  console.log(isAuthor);
+
+  useEffect(() => {
+    const checkIfAuthor = async () => {
+      const userJson = localStorage.getItem('user');
+      const user = JSON.parse(userJson);
+      const userUid = user?.uid;
+
+      if (!userUid) {
+        return; // User not logged in or user ID not found, handle as needed.
+      }
+
+      const pageAuthor = page.userId;
+
+      if (userUid === pageAuthor) {
+        setIsAuthor(true);
+      }
+    };
+
+    checkIfAuthor();
+  }, [page]);
 
   useEffect(() => {
     const fetchPageData = async () => {
@@ -94,7 +122,19 @@ const ResearchAccessPage = () => {
       {page && (
         <div style={{padding: '0px 120px 0px 120px'}}>
             <Flex direction={'column'} gap={10}>
-            <Title order={1}>{page.heading}</Title>
+              <Flex align={'center'} justify={'space-between'}>
+            {!isEditingHeading ? (<Title order={1}>{page.heading}</Title>) :<TextInput size="lg" width={'max-content'} value={page.heading} onChange={(event) => setPage({ ...page, heading: event.currentTarget.value })} />}
+            {isAuthor && (
+            <Button
+              variant="subtle"
+              color="red"
+              size='sm'
+              leftIcon={<IconEditCircle />}
+              onClick={() => setIsEditingHeading(!isEditingHeading)}
+            >
+              {isEditingHeading ? 'Save' : 'Edit'}
+            </Button>)}
+          </Flex>
             <Text color="dimmed" size="xs">
                 {formattedDate}
             </Text>
@@ -136,9 +176,22 @@ const ResearchAccessPage = () => {
                 </Flex>
                 
             </div>
-            <TypographyStylesProvider>
+            {!isEditingSummary ? (<TypographyStylesProvider>
                     <div id="summary" dangerouslySetInnerHTML={{ __html: `${summaryWithoutHeading}` }} />
-            </TypographyStylesProvider>
+            </TypographyStylesProvider>): 
+            <Textarea autosize value={page.summary} onChange={(event) => setPage({ ...page, summary: event.currentTarget.value })} />}
+            {isAuthor && (
+            <Button
+              variant="subtle"
+              color="red"
+              size='sm'
+              leftIcon={<IconEditCircle />}
+              onClick={() => setIsEditingSummary(!isEditingSummary)}
+            >
+              {isEditingSummary ? 'Save' : 'Edit'}
+            </Button>)
+  
+            }
         </div>
       )}
     </>
