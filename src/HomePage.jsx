@@ -437,15 +437,24 @@ const HomePage = () => {
   return (
     <>
     <Dropzone.FullScreen
-    active={true}
-    accept={['video/mp4, video/mov, video/avi, video/mkv, video/flv, video/wmv, video/3gp, video/ogg, video/webm, video/m4v']}
-    onDrop={(files) => {
-      console.log(files);
-      setVideo(files[0]);
-      setActive(false);
-      setIsUploaded(false);
-    }}
-  >
+      active={true}
+      accept={videoId === '' ? ['video/mp4', 'video/mov', 'video/avi', 'video/mkv', 'video/flv', 'video/wmv', 'video/3gp', 'video/ogg', 'video/webm', 'video/m4v'] : ['application/pdf']}
+      onDrop={(files) => {
+        console.log(files);
+        if (videoId === '') {
+          setVideo(files[0]); 
+          setActive(false);
+        } else {
+          setFile(files[0]);
+          setActive(false);
+        }
+        setActive(false);
+        setIsUploaded(false);
+      }}
+      onAbort={() => {
+        setActive(false);
+      }}
+    >
     <Group position="center" spacing="xl" mih={220} sx={{ pointerEvents: 'none' }}>
       <Dropzone.Accept>
         <IconUpload

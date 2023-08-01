@@ -184,7 +184,7 @@ function uploadVideo(auth, title, description, tags, path) {
           defaultAudioLanguage: 'en',
         },
         status: {
-          privacyStatus: 'private', // Change the privacy status as needed
+          privacyStatus: 'unlisted', // Change the privacy status as needed
         },
       },
       media: {

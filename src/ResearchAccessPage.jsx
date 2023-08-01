@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import CustomHeader from './CustomHeader';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getFirestore, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { ActionIcon, Avatar, Button, Chip, Flex, Group, LoadingOverlay, Modal, Text, TextInput, Textarea, Title, TypographyStylesProvider } from '@mantine/core';
-import { IconChevronRight, IconEditCircle, IconFileDescription, IconFolderOpen, IconTrash } from '@tabler/icons-react';
+import { ActionIcon, Avatar, Button, Chip, Flex, Group, LoadingOverlay, Modal, Text, TextInput, Textarea, ThemeIcon, Title, TypographyStylesProvider } from '@mantine/core';
+import { IconChevronRight, IconEditCircle, IconFileDescription, IconFolderOpen, IconTrash, IconTrashFilled } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 
 const ResearchAccessPage = () => {
@@ -315,8 +315,11 @@ const ResearchAccessPage = () => {
       </div>
     )}
     {fourOfour ? (<Flex direction={'column'} gap={'10'} align={'center'} justify={'center'}>
-      <Title order={3}>404</Title>
-      <Text c='dimmed'>This page was recently deleted or does not exsist</Text>
+    <ThemeIcon variant="filled" radius="xl" size="xl" color="teal">
+          <IconTrashFilled />
+    </ThemeIcon>
+      <Title order={3} mt={20}>Publication Deleted</Title>
+      <Text c='dimmed' component={Link} to="/">Go Home</Text>
     </Flex>):''}
   </>
   );
